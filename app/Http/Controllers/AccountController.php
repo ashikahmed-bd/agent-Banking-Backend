@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentType;
+use App\Exceptions\InsufficientBalance;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Account;
@@ -25,15 +26,44 @@ class AccountController extends Controller
         ]);
     }
 
+    public function getAccounts()
+    {
+        $accounts = Account::query()
+            ->where('default', '=', false)
+            ->get();
+        return AccountResource::collection($accounts);
+    }
+
     public function getBalance()
     {
-        $balance = Account::query()->sum('balance');
+        $cash = Account::query()
+            ->where('default', '=', true)
+            ->sum('balance');
+
+        $wallet = Account::query()
+            ->where('default', '=', false)
+            ->sum('balance');
+
+        return response()->json([
+            'cash' => $cash,
+            'wallet' => $wallet,
+        ], Response::HTTP_OK);
+    }
+
+    public function getCash()
+    {
+        $balance = Account::query()
+            ->where('default', '=', true)
+            ->sum('balance');
 
         return response()->json([
             'balance' => $balance,
         ], Response::HTTP_OK);
     }
 
+    /**
+     * @throws InsufficientBalance
+     */
     public function deposit(Request $request, $accountId)
     {
         $request->validate([
@@ -41,6 +71,15 @@ class AccountController extends Controller
         ]);
 
         $amount = $request->amount;
+
+        // Update cash
+        $cash = Account::query()->where('default', '=', true)
+            ->firstOrFail();
+
+        if ($cash->getBalance() <= 0){
+            throw new InsufficientBalance;
+        }
+        $cash->decrement('balance', $amount);
 
         // Atomic transaction for better concurrency
         DB::transaction(function () use ($accountId, $amount) {
@@ -74,12 +113,16 @@ class AccountController extends Controller
             $account = Account::lockForUpdate()->findOrFail($accountId); // Lock row for consistency
 
             // Check sufficient balance
-            if ($account->balance < $amount) {
-                throw new \Exception('Insufficient balance.');
+            if ($account->getBalance() < $amount) {
+                throw new InsufficientBalance;
             }
-
             // Update balance
             $account->decrement('balance', $amount);
+
+            // Update cash
+            $cash = Account::query()->where('default', '=', true)
+                ->firstOrFail();
+            $cash->increment('balance', $amount);
 
             // Log transaction
             Transaction::query()->create([

@@ -22,6 +22,7 @@ class AccountResource extends JsonResource
             'banner_url' => $this->banner_url,
             'balance' => $this->balance,
             'active' => $this->active,
+            'default' => (bool) $this->default,
         ];
     }
 }

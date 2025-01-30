@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('number');
+            $table->string('number')->nullable();
             $table->string('logo')->default('');
             $table->string('banner')->default('');
             $table->double('balance')->default(0);
             $table->string('active');
+            $table->boolean('default')->default(false);
             $table->string('disk')->default(config('app.disk'));
             $table->timestamps();
         });

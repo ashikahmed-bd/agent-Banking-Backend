@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentType;
+use App\Exceptions\InsufficientBalance;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Account extends Model
@@ -26,4 +29,50 @@ class Account extends Model
         return Storage::disk($this->disk)
             ->url($this->banner);
     }
+
+
+    public function deposit($amount, ?string $note = null): void
+    {
+        $this->balance += $amount;
+
+        $this->transactions()->create([
+            'amount' => $amount,
+            'date' => now(),
+            'type' => PaymentType::DEPOSIT,
+            'note' => $note,
+        ]);
+
+        $this->save();
+    }
+
+    /**
+     * @throws InsufficientBalance
+     */
+    public function withdraw($amount, $note = null): void
+    {
+        if ($amount > $this->balance) {
+            throw new InsufficientBalance;
+        }
+
+        $this->transactions()->create([
+            'amount' => $amount,
+            'date' => now(),
+            'type' => PaymentType::DEBIT,
+            'note' => $note,
+        ]);
+
+        $this->balance -= $amount;
+        $this->save();
+    }
+
+    public function getBalance()
+    {
+        return $this->balance;
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
 }

@@ -16,6 +16,8 @@ Route::prefix('account')->group(function (){
     Route::post('{account}/withdraw', [AccountController::class, 'withdraw']);
 });
 
+Route::get('accounts', [AccountController::class, 'getAccounts']);
+
 
 Route::prefix('transaction')->group(function (){
     Route::get('latest', [AccountController::class, 'latestTransaction']);

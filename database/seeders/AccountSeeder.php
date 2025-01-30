@@ -16,11 +16,12 @@ class AccountSeeder extends Seeder
         DB::table('accounts')->insert([
             [
                 'name' => 'Cash',
-                'number' => '0001',
-                'logo' => 'accounts/cash.svg',
+                'number' => '',
+                'logo' => 'accounts/cash.png',
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '5000',
                 'active' => true,
+                'default' => true,
             ],
             [
                 'name' => 'City Bank',
@@ -29,6 +30,7 @@ class AccountSeeder extends Seeder
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '5000',
                 'active' => true,
+                'default' => false,
             ],
             [
                 'name' => 'Islami Bank',
@@ -37,6 +39,7 @@ class AccountSeeder extends Seeder
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '5000',
                 'active' => true,
+                'default' => false,
             ],
             [
                 'name' => 'Bkash',
@@ -45,6 +48,7 @@ class AccountSeeder extends Seeder
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '5000',
                 'active' => true,
+                'default' => false,
             ],
             [
                 'name' => 'Nagad',
@@ -53,6 +57,7 @@ class AccountSeeder extends Seeder
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '3000',
                 'active' => true,
+                'default' => false,
             ],
             [
                 'name' => 'Rocket',
@@ -61,6 +66,7 @@ class AccountSeeder extends Seeder
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '2500',
                 'active' => true,
+                'default' => false,
             ],
             [
                 'name' => 'Upay',
@@ -69,6 +75,7 @@ class AccountSeeder extends Seeder
                 'banner' => 'accounts/bg-bkash.png',
                 'balance' => '1000',
                 'active' => true,
+                'default' => false,
             ],
         ]);
     }
