@@ -13,5 +13,10 @@ Route::prefix('account')->group(function (){
     Route::get('all', [AccountController::class, 'index']);
     Route::get('balance', [AccountController::class, 'getBalance']);
     Route::post('{account}/deposit', [AccountController::class, 'deposit']);
+    Route::post('{account}/withdraw', [AccountController::class, 'withdraw']);
+});
 
+
+Route::prefix('transaction')->group(function (){
+    Route::get('latest', [AccountController::class, 'latestTransaction']);
 });

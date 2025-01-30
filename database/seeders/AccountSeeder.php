@@ -19,8 +19,7 @@ class AccountSeeder extends Seeder
                 'number' => '0001',
                 'logo' => 'accounts/cash.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '5000',
-                'current_balance' => '0',
+                'balance' => '5000',
                 'active' => true,
             ],
             [
@@ -28,8 +27,7 @@ class AccountSeeder extends Seeder
                 'number' => '202236525252',
                 'logo' => 'accounts/city.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '5000',
-                'current_balance' => '0',
+                'balance' => '5000',
                 'active' => true,
             ],
             [
@@ -37,8 +35,7 @@ class AccountSeeder extends Seeder
                 'number' => '205036525252',
                 'logo' => 'accounts/islami.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '5000',
-                'current_balance' => '0',
+                'balance' => '5000',
                 'active' => true,
             ],
             [
@@ -46,8 +43,7 @@ class AccountSeeder extends Seeder
                 'number' => '01911742233',
                 'logo' => 'accounts/bkash.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '5000',
-                'current_balance' => '0',
+                'balance' => '5000',
                 'active' => true,
             ],
             [
@@ -55,8 +51,7 @@ class AccountSeeder extends Seeder
                 'number' => '01516598533',
                 'logo' => 'accounts/nagad.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '3000',
-                'current_balance' => '0',
+                'balance' => '3000',
                 'active' => true,
             ],
             [
@@ -64,8 +59,7 @@ class AccountSeeder extends Seeder
                 'number' => '01516598533',
                 'logo' => 'accounts/rocket.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '2500',
-                'current_balance' => '0',
+                'balance' => '2500',
                 'active' => true,
             ],
             [
@@ -73,8 +67,7 @@ class AccountSeeder extends Seeder
                 'number' => '01516598533',
                 'logo' => 'accounts/upay.svg',
                 'banner' => 'accounts/bg-bkash.png',
-                'initial_balance' => '1000',
-                'current_balance' => '0',
+                'balance' => '1000',
                 'active' => true,
             ],
         ]);

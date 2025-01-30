@@ -20,8 +20,7 @@ class AccountResource extends JsonResource
             'number' => $this->number,
             'logo_url' => $this->logo_url,
             'banner_url' => $this->banner_url,
-            'initial_balance' => $this->initial_balance,
-            'current_balance' => $this->current_balance,
+            'balance' => $this->balance,
             'active' => $this->active,
         ];
     }

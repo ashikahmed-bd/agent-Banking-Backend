@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentType;
 use App\Http\Resources\AccountResource;
+use App\Http\Resources\TransactionResource;
 use App\Models\Account;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -17,21 +18,19 @@ class AccountController extends Controller
     {
         $accounts = Account::query()->paginate($request->limit);
 
-        $initial = Account::query()->sum('initial_balance');
-        $current = Account::query()->sum('current_balance');
+        $balance = Account::query()->sum('balance');
 
         return AccountResource::collection($accounts)->additional([
-            'total_balance' => round($initial + $current)
+            'total_balance' => round($balance)
         ]);
     }
 
     public function getBalance()
     {
-        $initial = Account::query()->sum('initial_balance');
-        $current = Account::query()->sum('current_balance');
+        $balance = Account::query()->sum('balance');
 
         return response()->json([
-            'balance' => round($initial + $current),
+            'balance' => $balance,
         ], Response::HTTP_OK);
     }
 
@@ -48,14 +47,14 @@ class AccountController extends Controller
             $account = Account::lockForUpdate()->findOrFail($accountId); // Lock row for consistency
 
             // Update balance
-            $account->increment('current_balance', $amount);
+            $account->increment('balance', $amount);
 
             // Log transaction
             Transaction::query()->create([
                 'account_id' => $accountId,
                 'type' => PaymentType::CREDIT,
                 'amount' => $amount,
-                'balance_after_transaction' => $account->current_balance,
+                'balance_after_transaction' => $account->balance,
                 'date' => now(),
             ]);
         });
@@ -75,19 +74,20 @@ class AccountController extends Controller
             $account = Account::lockForUpdate()->findOrFail($accountId); // Lock row for consistency
 
             // Check sufficient balance
-            if ($account->current_balance < $amount) {
+            if ($account->balance < $amount) {
                 throw new \Exception('Insufficient balance.');
             }
 
             // Update balance
-            $account->decrement('current_balance', $amount);
+            $account->decrement('balance', $amount);
 
             // Log transaction
-            Transaction::create([
+            Transaction::query()->create([
                 'account_id' => $accountId,
-                'type' => 'withdraw',
+                'type' => PaymentType::DEBIT,
                 'amount' => $amount,
-                'balance_after_transaction' => $account->current_balance,
+                'balance_after_transaction' => $account->balance,
+                'date' => now(),
             ]);
         });
 
@@ -95,34 +95,9 @@ class AccountController extends Controller
     }
 
 
-    public function balanceSheet()
+    public function latestTransaction(Request $request)
     {
-        $accounts = Account::all();
-        $date = Carbon::yesterday(); // Generate for the previous day
-
-        foreach ($accounts as $account) {
-            $openingBalance = BalanceSheet::where('account_id', $account->id)
-                ->where('date', '<', $date)
-                ->orderBy('date', 'desc')
-                ->value('closing_balance') ?? $account->initial_balance;
-
-            $transactions = Transaction::query()->where('account_id', $account->id)
-                ->whereDate('date', $date)
-                ->get();
-
-            $credits = $transactions->where('type', 'credit')->sum('amount');
-            $debits = $transactions->where('type', 'debit')->sum('amount');
-            $closingBalance = $openingBalance + $credits - $debits;
-
-            BalanceSheet::updateOrCreate(
-                ['account_id' => $account->id, 'date' => $date],
-                [
-                    'opening_balance' => $openingBalance,
-                    'closing_balance' => $closingBalance,
-                    'credits_total' => $credits,
-                    'debits_total' => $debits,
-                ]
-            );
-        }
+        $transactions = Transaction::query()->with(['account'])->latest()->paginate($request->limit);
+        return TransactionResource::collection($transactions);
     }
 }

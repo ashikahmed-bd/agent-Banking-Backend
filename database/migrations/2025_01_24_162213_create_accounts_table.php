@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('number');
             $table->string('logo')->default('');
             $table->string('banner')->default('');
-            $table->double('initial_balance')->default(0);
-            $table->double('current_balance')->default(0);
+            $table->double('balance')->default(0);
             $table->string('active');
             $table->string('disk')->default(config('app.disk'));
             $table->timestamps();
