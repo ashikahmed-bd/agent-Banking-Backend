@@ -10,17 +10,21 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'account_id',
-        'type',
-        'amount',
-        'balance_after_transaction',
-        'reference',
-        'date',
-    ];
+    protected $guarded = [];
 
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

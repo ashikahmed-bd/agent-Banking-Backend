@@ -10,6 +10,7 @@ use App\Models\Account;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -36,18 +37,7 @@ class AccountController extends Controller
 
     public function getBalance()
     {
-        $cash = Account::query()
-            ->where('default', '=', true)
-            ->sum('balance');
 
-        $wallet = Account::query()
-            ->where('default', '=', false)
-            ->sum('balance');
-
-        return response()->json([
-            'cash' => $cash,
-            'wallet' => $wallet,
-        ], Response::HTTP_OK);
     }
 
     public function getCash()
@@ -64,17 +54,18 @@ class AccountController extends Controller
     /**
      * @throws InsufficientBalance
      */
-    public function deposit(Request $request, $accountId)
+    public function deposit(Request $request, string $account_id)
     {
+
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:1',
+            'note' => 'nullable|string',
         ]);
 
         $amount = $request->amount;
 
-        // Update cash
-        $cash = Account::query()->where('default', '=', true)
-            ->firstOrFail();
+        // Get default cash account
+        $cash = Account::query()->where('default', '=', true)->firstOrFail();
 
         if ($cash->getBalance() <= 0){
             throw new InsufficientBalance;
@@ -82,35 +73,39 @@ class AccountController extends Controller
         $cash->decrement('balance', $amount);
 
         // Atomic transaction for better concurrency
-        DB::transaction(function () use ($accountId, $amount) {
-            $account = Account::lockForUpdate()->findOrFail($accountId); // Lock row for consistency
-
-            // Update balance
+        DB::transaction(function () use ($account_id, $amount) {
+            $account = Account::query()->lockForUpdate()->findOrFail($account_id); // Lock row for consistency
             $account->increment('balance', $amount);
 
             // Log transaction
             Transaction::query()->create([
-                'account_id' => $accountId,
+                'account_id' => $account_id,
                 'type' => PaymentType::CREDIT,
                 'amount' => $amount,
                 'balance_after_transaction' => $account->balance,
                 'date' => now(),
+                'business_id' => $account->business_id,
+                'user_id' => Auth::id(),
             ]);
         });
 
-        return response()->json(['message' => 'Deposit successful.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Deposit successful.',
+        ], Response::HTTP_OK);
     }
 
-    public function withdraw(Request $request, $accountId)
+    public function withdraw(Request $request, $account_id)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:1',
+            'note' => 'nullable|string',
         ]);
 
         $amount = $request->amount;
 
-        DB::transaction(function () use ($accountId, $amount) {
-            $account = Account::lockForUpdate()->findOrFail($accountId); // Lock row for consistency
+        DB::transaction(function () use ($account_id, $amount) {
+            $account = Account::query()->lockForUpdate()->findOrFail($account_id); // Lock row for consistency
 
             // Check sufficient balance
             if ($account->getBalance() < $amount) {
@@ -120,27 +115,32 @@ class AccountController extends Controller
             $account->decrement('balance', $amount);
 
             // Update cash
-            $cash = Account::query()->where('default', '=', true)
-                ->firstOrFail();
+            $cash = Account::query()->where('default', '=', true)->firstOrFail();
             $cash->increment('balance', $amount);
 
             // Log transaction
             Transaction::query()->create([
-                'account_id' => $accountId,
+                'account_id' => $account_id,
                 'type' => PaymentType::DEBIT,
                 'amount' => $amount,
                 'balance_after_transaction' => $account->balance,
                 'date' => now(),
+                'business_id' => $account->business_id,
+                'user_id' => Auth::id(),
             ]);
         });
 
-        return response()->json(['message' => 'Withdrawal successful.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal successful.',
+        ], Response::HTTP_OK);
     }
 
 
-    public function latestTransaction(Request $request)
+    public function latestTransaction()
     {
-        $transactions = Transaction::query()->with(['account'])->latest()->paginate($request->limit);
+        $transactions = Transaction::query()->with(['account'])->latest()->take(5)->get();
         return TransactionResource::collection($transactions);
     }
+
 }

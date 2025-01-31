@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AccountResource extends JsonResource
+class BusinessResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,11 +17,11 @@ class AccountResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'number' => $this->number,
-            'logo_url' => $this->logo_url,
-            'balance' => $this->balance,
-            'active' => $this->active,
-            'default' => (bool) $this->default,
+            'phone' => $this->phone,
+            'email' => $this->email,
+            'address' => $this->address,
+            'owner' => UserResource::make($this->whenLoaded('owner')),
+            'accounts' => AccountResource::collection($this->whenLoaded('accounts')),
         ];
     }
 }

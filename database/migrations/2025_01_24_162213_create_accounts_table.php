@@ -16,11 +16,13 @@ return new class extends Migration
             $table->string('name');
             $table->string('number')->nullable();
             $table->string('logo')->default('');
-            $table->string('banner')->default('');
             $table->double('balance')->default(0);
             $table->string('active');
             $table->boolean('default')->default(false);
             $table->string('disk')->default(config('app.disk'));
+
+            $table->foreignId('business_id')->constrained();
+
             $table->timestamps();
         });
     }

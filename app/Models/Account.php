@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Enums\PaymentType;
 use App\Exceptions\InsufficientBalance;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class Account extends Model
@@ -24,12 +26,10 @@ class Account extends Model
             ->url($this->logo);
     }
 
-    public function getBannerUrlAttribute()
+    public static function getDefaultAccount()
     {
-        return Storage::disk($this->disk)
-            ->url($this->banner);
+        return self::query()->where('default', true)->firstOrFail();
     }
-
 
     public function deposit($amount, ?string $note = null): void
     {
@@ -38,8 +38,11 @@ class Account extends Model
         $this->transactions()->create([
             'amount' => $amount,
             'date' => now(),
-            'type' => PaymentType::DEPOSIT,
+            'type' => PaymentType::CREDIT,
+            'balance_after_transaction' => $this->balance,
             'note' => $note,
+            'business_id' => $this->business_id,
+            'user_id' => Auth::id(),
         ]);
 
         $this->save();
@@ -53,16 +56,18 @@ class Account extends Model
         if ($amount > $this->balance) {
             throw new InsufficientBalance;
         }
+        $this->balance -= $amount;
+        $this->save();
 
         $this->transactions()->create([
             'amount' => $amount,
             'date' => now(),
             'type' => PaymentType::DEBIT,
+            'balance_after_transaction' => $this->balance,
             'note' => $note,
+            'business_id' => $this->business_id,
+            'user_id' => Auth::id(),
         ]);
-
-        $this->balance -= $amount;
-        $this->save();
     }
 
     public function getBalance()
@@ -73,6 +78,11 @@ class Account extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
     }
 
 }
