@@ -23,16 +23,24 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        Customer::query()->create([
+        $customer = Customer::query()->create([
             'name' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address ?? null,
         ]);
 
+        $customer->payments()->create([
+            'receivable' => 400,
+            'payable' => 100,
+            'note' => 'Bank Transfer',
+
+        ]);
+
+
         return response()->json([
             'success' => true,
             'message' => 'Customer Added Successful.',
-        ], Response::HTTP_OK);
+        ], Response::HTTP_CREATED);
     }
 
 

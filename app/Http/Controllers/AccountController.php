@@ -139,7 +139,7 @@ class AccountController extends Controller
 
     public function latestTransaction()
     {
-        $transactions = Transaction::query()->with(['account'])->latest()->take(5)->get();
+        $transactions = Transaction::query()->with(['account'])->latest()->take(6)->get();
         return TransactionResource::collection($transactions);
     }
 
