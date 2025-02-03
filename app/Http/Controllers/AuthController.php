@@ -43,12 +43,33 @@ class AuthController extends Controller
 
         $user = User::query()->where('phone', $request->phone)->firstOrFail();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        // Check if the account is enabled
+        if (! $user->active) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid credentials',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $business = $user->withoutEvents(function () use ($user) {
+            return $user->business()->first();
+        });
+
+        // Logout if no branch assigned
+        if (! $business) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Business not found! Please Contact support team.',
             ], Response::HTTP_UNAUTHORIZED);
         }
+
+        if (! Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials!',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
 
         return response()->json([
             'message' => 'Login successful',

@@ -30,9 +30,9 @@ class CustomerController extends Controller
         ]);
 
         $customer->payments()->create([
-            'receivable' => 400,
-            'payable' => 100,
-            'note' => 'Bank Transfer',
+            'receivable' => $request->receivable,
+            'payable' => $request->payable,
+            'note' => $request->note,
 
         ]);
 

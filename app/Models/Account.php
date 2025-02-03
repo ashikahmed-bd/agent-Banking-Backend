@@ -31,7 +31,7 @@ class Account extends Model
         return self::query()->where('default', true)->firstOrFail();
     }
 
-    public function deposit($amount, ?string $note = null): void
+    public function deposit($amount, string $note = null): void
     {
         $this->balance += $amount;
 
@@ -51,7 +51,7 @@ class Account extends Model
     /**
      * @throws InsufficientBalance
      */
-    public function withdraw($amount, $note = null): void
+    public function withdraw($amount, string $note = null): void
     {
         if ($amount > $this->balance) {
             throw new InsufficientBalance;

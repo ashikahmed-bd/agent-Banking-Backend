@@ -12,7 +12,7 @@ class WalletController extends Controller
     public function deposit(Request $request)
     {
         $cash = Account::query()->where('default', '=', true)->firstOrFail();
-        $cash->deposit($request->amount);
+        $cash->deposit($request->amount, $request->note);
 
         return response()->json([
             'success' => true,
@@ -27,7 +27,7 @@ class WalletController extends Controller
     public function withdraw(Request $request)
     {
         $cash = Account::query()->where('default', '=', true)->firstOrFail();
-        $cash->withdraw($request->amount);
+        $cash->withdraw($request->amount, $request->note);
 
         return response()->json([
             'success' => true,

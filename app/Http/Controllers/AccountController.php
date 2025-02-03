@@ -63,6 +63,7 @@ class AccountController extends Controller
         ]);
 
         $amount = $request->amount;
+        $profit = $request->profit;
 
         // Get default cash account
         $cash = Account::query()->where('default', '=', true)->firstOrFail();
@@ -73,7 +74,7 @@ class AccountController extends Controller
         $cash->decrement('balance', $amount);
 
         // Atomic transaction for better concurrency
-        DB::transaction(function () use ($account_id, $amount) {
+        DB::transaction(function () use ($account_id, $amount, $profit) {
             $account = Account::query()->lockForUpdate()->findOrFail($account_id); // Lock row for consistency
             $account->increment('balance', $amount);
 
@@ -82,6 +83,7 @@ class AccountController extends Controller
                 'account_id' => $account_id,
                 'type' => PaymentType::CREDIT,
                 'amount' => $amount,
+                'profit' => $profit,
                 'balance_after_transaction' => $account->balance,
                 'date' => now(),
                 'business_id' => $account->business_id,
@@ -103,8 +105,9 @@ class AccountController extends Controller
         ]);
 
         $amount = $request->amount;
+        $profit = $request->profit;
 
-        DB::transaction(function () use ($account_id, $amount) {
+        DB::transaction(function () use ($account_id, $amount, $profit) {
             $account = Account::query()->lockForUpdate()->findOrFail($account_id); // Lock row for consistency
 
             // Check sufficient balance
@@ -123,6 +126,7 @@ class AccountController extends Controller
                 'account_id' => $account_id,
                 'type' => PaymentType::DEBIT,
                 'amount' => $amount,
+                'profit' => $profit,
                 'balance_after_transaction' => $account->balance,
                 'date' => now(),
                 'business_id' => $account->business_id,
