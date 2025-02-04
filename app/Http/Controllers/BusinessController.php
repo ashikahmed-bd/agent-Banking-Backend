@@ -6,6 +6,7 @@ use App\Http\Resources\AccountResource;
 use App\Http\Resources\BusinessResource;
 use App\Models\Account;
 use App\Models\Business;
+use App\Models\Customer;
 use Symfony\Component\HttpFoundation\Response;
 
 class BusinessController extends Controller
@@ -44,9 +45,11 @@ class BusinessController extends Controller
             ->where('business_id', auth()->user()->business->id)
             ->get();
 
+
         return response()->json([
             'cash' => $account->where('default', '=', true)->sum('balance'),
             'wallet' => $account->where('default', '=', false)->sum('balance'),
+            'total_due' => $account->where('default', '=', false)->sum('balance'),
         ], Response::HTTP_OK);
     }
 

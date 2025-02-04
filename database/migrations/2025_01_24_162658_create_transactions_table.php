@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('account_id')->constrained();
             $table->string('type')->default('');
             $table->double('amount')->default(0);
-            $table->double('profit')->default(0);
+            $table->double('profit')->nullable()->default(0);
             $table->date('date');
             $table->double('balance_after_transaction')->default(0);
             $table->string('note')->nullable();

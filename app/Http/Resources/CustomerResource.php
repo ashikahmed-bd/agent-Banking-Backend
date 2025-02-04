@@ -19,8 +19,9 @@ class CustomerResource extends JsonResource
             'name' => $this->name,
             'phone' => $this->phone,
             'address' => $this->address,
-            'receivable' => $this->receivable()->sum('receivable'),
-            'payable' => $this->payable()->sum('payable'),
+            'balance' => $this->balance,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

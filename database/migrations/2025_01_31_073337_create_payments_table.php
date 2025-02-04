@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PaymentType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,8 +15,8 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
-            $table->double('receivable')->nullable();
-            $table->double('payable')->nullable();
+            $table->string('type')->default((PaymentType::CREDIT)->value);
+            $table->double('amount')->nullable();
             $table->text('note')->nullable();
             $table->timestamps();
         });

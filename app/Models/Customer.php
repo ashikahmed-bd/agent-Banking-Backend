@@ -7,23 +7,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-    protected $fillable = [
-        'name', 'phone', 'address'
-    ];
+    protected $guarded = [];
 
 
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
-    }
-
-    public function receivable()
-    {
-        return $this->hasMany(Payment::class)->whereNotNull('receivable');
-    }
-
-    public function payable()
-    {
-        return $this->hasMany(Payment::class)->whereNotNull('payable');
     }
 }

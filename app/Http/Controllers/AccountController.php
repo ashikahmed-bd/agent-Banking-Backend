@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\PaymentType;
 use App\Exceptions\InsufficientBalance;
 use App\Http\Resources\AccountResource;
+use App\Http\Resources\CustomerResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Account;
+use App\Models\Customer;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -35,21 +37,47 @@ class AccountController extends Controller
         return AccountResource::collection($accounts);
     }
 
-    public function getBalance()
-    {
-
-    }
 
     public function getCash()
     {
         $balance = Account::query()
+            ->where('business_id', getBusinessId())
             ->where('default', '=', true)
             ->sum('balance');
 
-        return response()->json([
-            'balance' => $balance,
-        ], Response::HTTP_OK);
+        return response()->json($balance, Response::HTTP_OK);
     }
+
+    public function getAccountsBalance()
+    {
+        $account = Account::query()
+            ->where('business_id', getBusinessId())
+            ->get();
+
+        $wallet = $account->where('default', '=', false)->sum('balance');
+
+        return response()->json($wallet, Response::HTTP_OK);
+    }
+
+
+    public function getWallet()
+    {
+        $total_due = Customer::query()->where('business_id', getBusinessId())
+            ->where('balance', '<', 0) // Customers who owe money
+            ->sum('balance');
+
+        $total_payable = Customer::query()->where('business_id', getBusinessId())
+            ->where('balance', '>', 0) // Customers with extra balance
+            ->sum('balance');
+
+        return response()->json([
+            'total_due' => $total_due,  // Convert negative values to positive
+            'total_payable' => $total_payable,
+        ], Response::HTTP_OK);
+
+    }
+
+
 
     /**
      * @throws InsufficientBalance

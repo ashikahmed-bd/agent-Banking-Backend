@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentType;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
 use Illuminate\Http\Request;
@@ -23,19 +24,37 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        $customer = Customer::query()->create([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'address' => $request->address ?? null,
-        ]);
+        $customer = new Customer();
+        $customer->name = $request->name;
+        $customer->phone = $request->phone;
+        $customer->address = $request->address ?? null;
+        $customer->business_id = getBusinessId();
 
-        $customer->payments()->create([
-            'receivable' => $request->receivable,
-            'payable' => $request->payable,
-            'note' => $request->note,
+        if ($request->has('due')){
+            $customer->balance -= $request->due;
+        }
+        if ($request->has('payable')){
+            $customer->balance += $request->payable;
+        }
+        $customer->save();
 
-        ]);
+        // Now customer_id exists, we can safely create the payment
+        if ($request->due > 0){
+            $customer->payments()->create([
+                'type' => PaymentType::DEBIT,
+                'amount' => $request->due,
+                'note' => $request->note ?? null,
+            ]);
+        }
 
+        // Now customer_id exists, we can safely create the payment
+        if ($request->payable > 0) {
+            $customer->payments()->create([
+                'type' => PaymentType::CREDIT,
+                'amount' => $request->payable,
+                'note' => $request->note ?? null,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -47,9 +66,28 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function payment(Request $request, string $id)
     {
-        //
+
+        $customer = Customer::query()->findOrFail($id);
+
+        if ($request->has('due')){
+            $customer->balance -= $request->due;
+            $customer->payments()->create([
+
+            ]);
+        }
+
+        if ($request->has('payable')){
+            $customer->balance += $request->payable;
+        }
+
+        $customer->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payments Successful.',
+        ], Response::HTTP_CREATED);
     }
 
     /**

@@ -4,6 +4,8 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProfitController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +23,15 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::get('owner', [BusinessController::class, 'getOwner']);
     Route::get('accounts', [BusinessController::class, 'getAccounts']);
-    Route::get('balance', [BusinessController::class, 'getBalance']);
+
+    Route::prefix('balance')->group(function (){
+        Route::get('cash', [AccountController::class, 'getCash']);
+        Route::get('accounts', [AccountController::class, 'getAccountsBalance']);
+        Route::get('wallet', [AccountController::class, 'getWallet']);
+        Route::get('profit', [ProfitController::class, 'getProfit']);
+    });
+
+
 
     Route::post('account/{account}/deposit', [AccountController::class, 'deposit']);
     Route::post('account/{account}/withdraw', [AccountController::class, 'withdraw']);
@@ -33,7 +43,10 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::get('customers', [CustomerController::class, 'index']);
     Route::post('customer/store', [CustomerController::class, 'store']);
+    Route::post('customer/{customer}/payment', [CustomerController::class, 'payment']);
 
     Route::post('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+Route::get('reboot', [SettingsController::class, 'reboot']);
+Route::get('seed', [SettingsController::class, 'seed']);
