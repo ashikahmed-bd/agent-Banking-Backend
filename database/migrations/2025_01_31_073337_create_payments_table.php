@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->string('type')->default((PaymentType::CREDIT)->value);
-            $table->double('amount')->nullable();
+            $table->double('amount')->default(0);
             $table->text('note')->nullable();
             $table->timestamps();
         });

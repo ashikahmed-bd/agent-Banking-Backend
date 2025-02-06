@@ -10,30 +10,22 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
+    public function register(Request $request) {
         $request->validate([
-            'business_id' => 'required|exists:businesses,id',
-            'name' => 'required|string|max:255',
-            'phone' => 'required|unique:users,phone',
-            'email' => 'nullable|email|unique:users,email',
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
         ]);
 
-        $customer = User::create([
-            'business_id' => $request->business_id,
+        $user = User::query()->create([
             'name' => $request->name,
-            'phone' => $request->phone,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => 'customer',
+            'password' => Hash::make($request->password),
         ]);
 
-        return response()->json([
-            'message' => 'Customer registered successfully',
-            'token' => $customer->createToken('API Token')->plainTextToken
-        ], 201);
+        return response()->json(['token' => $user->createToken('API Token')->plainTextToken]);
     }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -49,18 +41,6 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => 'Invalid credentials',
             ], Response::HTTP_FORBIDDEN);
-        }
-
-        $business = $user->withoutEvents(function () use ($user) {
-            return $user->business()->first();
-        });
-
-        // Logout if no branch assigned
-        if (! $business) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Business not found! Please Contact support team.',
-            ], Response::HTTP_UNAUTHORIZED);
         }
 
         if (! Hash::check($request->password, $user->password)) {

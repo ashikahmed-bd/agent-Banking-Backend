@@ -23,9 +23,7 @@ return new class extends Migration
             $table->double('balance_after_transaction')->default(0);
             $table->string('note')->nullable();
 
-            $table->foreignId('business_id')->constrained();
-            $table->foreignId('user_id')->constrained();
-
+            $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

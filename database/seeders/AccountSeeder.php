@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Business;
+use App\Models\Company;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +22,7 @@ class AccountSeeder extends Seeder
                 'balance' => '5000',
                 'active' => true,
                 'default' => true,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
             [
                 'name' => 'City Bank',
@@ -31,7 +31,7 @@ class AccountSeeder extends Seeder
                 'balance' => '5000',
                 'active' => true,
                 'default' => false,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
             [
                 'name' => 'Islami Bank',
@@ -40,7 +40,7 @@ class AccountSeeder extends Seeder
                 'balance' => '5000',
                 'active' => true,
                 'default' => false,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
             [
                 'name' => 'Bkash',
@@ -49,7 +49,7 @@ class AccountSeeder extends Seeder
                 'balance' => '5000',
                 'active' => true,
                 'default' => false,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
             [
                 'name' => 'Nagad',
@@ -58,7 +58,7 @@ class AccountSeeder extends Seeder
                 'balance' => '3000',
                 'active' => true,
                 'default' => false,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
             [
                 'name' => 'Rocket',
@@ -67,7 +67,7 @@ class AccountSeeder extends Seeder
                 'balance' => '3000',
                 'active' => true,
                 'default' => false,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
             [
                 'name' => 'Upay',
@@ -76,7 +76,7 @@ class AccountSeeder extends Seeder
                 'balance' => '4000',
                 'active' => true,
                 'default' => false,
-                'business_id' => Business::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
             ],
         ]);
     }

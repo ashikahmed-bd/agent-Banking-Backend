@@ -21,8 +21,7 @@ return new class extends Migration
             $table->boolean('default')->default(false);
             $table->string('disk')->default(config('app.disk'));
 
-            $table->foreignId('business_id')->constrained();
-
+            $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

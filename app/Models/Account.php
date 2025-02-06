@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Enums\PaymentType;
 use App\Exceptions\InsufficientBalance;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,7 +18,12 @@ class Account extends Model
 
     protected $hidden = [
         'disk',
+        'company_id',
     ];
+
+    public function company() {
+        return $this->belongsTo(Company::class);
+    }
 
     public function getLogoUrlAttribute()
     {
@@ -80,9 +85,18 @@ class Account extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function business(): BelongsTo
+
+    protected static function booted(): void
     {
-        return $this->belongsTo(Business::class);
+        static::addGlobalScope('company_filter', function (Builder $builder) {
+            if (Auth::check()) {
+                $companyId = Auth::user()->companies()->pluck('id')->toArray();
+                if (!$companyId) {
+                    abort(403, trans('messages.no_company'));
+                }
+                $builder->whereIn('company_id', $companyId);
+            }
+        });
     }
 
 }

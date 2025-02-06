@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\PaymentType;
 use App\Exceptions\InsufficientBalance;
 use App\Http\Resources\AccountResource;
-use App\Http\Resources\CustomerResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,63 +19,44 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $accounts = Account::query()->paginate($request->limit);
-
-        $balance = Account::query()->sum('balance');
-
-        return AccountResource::collection($accounts)->additional([
-            'total_balance' => round($balance)
-        ]);
-    }
-
-    public function getAccounts()
-    {
         $accounts = Account::query()
             ->where('default', '=', false)
-            ->get();
+            ->paginate($request->limit);
         return AccountResource::collection($accounts);
     }
 
 
-    public function getCash()
+    public function getBalance()
     {
-        $balance = Account::query()
-            ->where('business_id', getBusinessId())
-            ->where('default', '=', true)
-            ->sum('balance');
+        $account = Account::query()->get();
 
-        return response()->json($balance, Response::HTTP_OK);
-    }
-
-    public function getAccountsBalance()
-    {
-        $account = Account::query()
-            ->where('business_id', getBusinessId())
-            ->get();
-
-        $wallet = $account->where('default', '=', false)->sum('balance');
-
-        return response()->json($wallet, Response::HTTP_OK);
-    }
-
-
-    public function getWallet()
-    {
-        $total_due = Customer::query()->where('business_id', getBusinessId())
+        $total_due = Customer::query()
             ->where('balance', '<', 0) // Customers who owe money
             ->sum('balance');
 
-        $total_payable = Customer::query()->where('business_id', getBusinessId())
+        $total_payable = Customer::query()
             ->where('balance', '>', 0) // Customers with extra balance
             ->sum('balance');
 
+        $todayProfit = Transaction::query()
+            ->whereDate('date', '=' , Carbon::parse(now())->toDateString())
+            ->sum('profit');
+
+        $totalProfit = Transaction::query()->sum('profit');
+
         return response()->json([
-            'total_due' => $total_due,  // Convert negative values to positive
-            'total_payable' => $total_payable,
+            'cash' => $account->where('default', '=', true)->sum('balance'),
+            'accounts' => $account->where('default', '=', false)->sum('balance'),
+            'wallet' => [
+                'due' => $total_due,
+                'payable' => $total_payable,
+            ],
+            'profit' => [
+                'today' => $todayProfit,
+                'total' => $totalProfit,
+            ],
         ], Response::HTTP_OK);
-
     }
-
 
 
     /**
@@ -114,8 +94,6 @@ class AccountController extends Controller
                 'profit' => $profit,
                 'balance_after_transaction' => $account->balance,
                 'date' => now(),
-                'business_id' => $account->business_id,
-                'user_id' => Auth::id(),
             ]);
         });
 
@@ -157,8 +135,6 @@ class AccountController extends Controller
                 'profit' => $profit,
                 'balance_after_transaction' => $account->balance,
                 'date' => now(),
-                'business_id' => $account->business_id,
-                'user_id' => Auth::id(),
             ]);
         });
 
@@ -169,10 +145,28 @@ class AccountController extends Controller
     }
 
 
-    public function latestTransaction()
+    public function getTransactions()
     {
-        $transactions = Transaction::query()->with(['account'])->latest()->take(6)->get();
+        $transactions = Transaction::query()
+            ->with(['account'])
+            ->latest()
+            ->take(10)
+            ->get();
         return TransactionResource::collection($transactions);
+    }
+
+
+    public function getHistory(Request $request, string $id)
+    {
+
+        $account = Account::query()->findOrFail($id);
+
+        return response()->json([
+            'account' => $account,
+            'transactions' => $account->transactions()
+                ->whereDate('date', '=', Carbon::parse($request->date)
+                    ->toDateString())->get(),
+        ], Response::HTTP_OK);
     }
 
 }
