@@ -27,8 +27,6 @@ class CustomerController extends Controller
         $customer = new Customer();
         $customer->name = $request->name;
         $customer->phone = $request->phone;
-        $customer->address = $request->address ?? null;
-        $customer->business_id = getBusinessId();
 
         if ($request->has('due')){
             $customer->balance -= $request->due;
@@ -63,6 +61,13 @@ class CustomerController extends Controller
     }
 
 
+    public function show(string $id)
+    {
+        $customer = Customer::query()->findOrFail($id);
+        return CustomerResource::make($customer);
+    }
+
+
     /**
      * Display the specified resource.
      */
@@ -71,18 +76,27 @@ class CustomerController extends Controller
 
         $customer = Customer::query()->findOrFail($id);
 
-        if ($request->has('due')){
+        if ($request->due > 0){
             $customer->balance -= $request->due;
-            $customer->payments()->create([
 
+            $customer->payments()->create([
+                'type' => PaymentType::DEBIT,
+                'amount' => $request->due,
+                'note' => $request->note,
             ]);
         }
 
-        if ($request->has('payable')){
+        if ($request->payable > 0){
             $customer->balance += $request->payable;
+
+            $customer->payments()->create([
+                'type' => PaymentType::CREDIT,
+                'amount' => $request->payable,
+                'note' => $request->note,
+            ]);
         }
 
-        $customer->save();
+        $customer->update();
 
         return response()->json([
             'success' => true,
