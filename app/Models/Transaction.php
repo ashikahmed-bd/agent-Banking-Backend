@@ -36,6 +36,17 @@ class Transaction extends Model
 
     protected static function booted(): void
     {
+        static::creating(function ($customer) {
+            if (Auth::check()) {
+                $companyId = Auth::user()->companies()->first()->id ?? null;
+                if (!$companyId) {
+                    abort(403, trans('messages.no_company')); // Prevents saving without a company
+                }
+                $customer->company_id = $companyId;
+            }
+        });
+
+        // Global Scope to filter by company
         static::addGlobalScope('company_filter', function (Builder $builder) {
             if (Auth::check()) {
                 $companyId = Auth::user()->companies()->pluck('id')->toArray();

@@ -46,8 +46,6 @@ class Account extends Model
             'type' => PaymentType::CREDIT,
             'balance_after_transaction' => $this->balance,
             'note' => $note,
-            'business_id' => $this->business_id,
-            'user_id' => Auth::id(),
         ]);
 
         $this->save();
@@ -70,8 +68,6 @@ class Account extends Model
             'type' => PaymentType::DEBIT,
             'balance_after_transaction' => $this->balance,
             'note' => $note,
-            'business_id' => $this->business_id,
-            'user_id' => Auth::id(),
         ]);
     }
 
