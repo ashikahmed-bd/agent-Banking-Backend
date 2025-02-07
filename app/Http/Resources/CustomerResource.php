@@ -21,6 +21,7 @@ class CustomerResource extends JsonResource
             'phone' => $this->phone,
             'address' => $this->address,
             'balance' => $this->balance,
+            'avatar_url' => $this->avatar,
             'created_at' => $this->created_at,
             'updated_at' => Carbon::parse($this->updated_at)->diffForHumans(),
         ];

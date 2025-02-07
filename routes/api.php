@@ -22,13 +22,16 @@ Route::prefix('auth')->group(function (){
 // Route group for authentication user only
 Route::middleware('auth:sanctum')->group(function (){
     // user routes
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('user', [AuthController::class, 'user']);
+    Route::post('logout', [AuthController::class, 'logout']);
 
-    Route::get('/companies', [CompanyController::class, 'index']); // Show only user’s companies
-    Route::get('/transactions', [TransactionController::class, 'index']); // Show user’s company transactions
-    Route::get('/accounts', [AccountController::class, 'index']);
-    Route::get('/balance', [AccountController::class, 'getBalance']);
+    Route::get('companies', [CompanyController::class, 'index']); // Show only user’s companies
+    Route::get('transactions', [TransactionController::class, 'index']); // Show user’s company transactions
+
+    Route::get('accounts', [AccountController::class, 'index']);
+    Route::post('account/store', [AccountController::class, 'store']);
+
+    Route::get('balance', [AccountController::class, 'getBalance']);
 
 
     Route::post('account/{account}/deposit', [AccountController::class, 'deposit']);

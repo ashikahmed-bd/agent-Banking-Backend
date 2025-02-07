@@ -13,6 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 use Symfony\Component\HttpFoundation\Response;
 
 class AccountController extends Controller
@@ -23,6 +25,34 @@ class AccountController extends Controller
             ->where('default', '=', false)
             ->paginate($request->limit);
         return AccountResource::collection($accounts);
+    }
+
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'number' => ['required', 'string'],
+        ]);
+
+
+        $account = new Account();
+        $account->name = $request->name;
+        $account->number = $request->number;
+
+        if ($request->hasFile('logo')){
+            $logoUrl = $request->file('logo')->store('accounts', config('app.disk'));
+            Image::read($request->file('logo'))->resize(128, 128)->save(Storage::disk(config('app.disk'))->path($logoUrl));
+            $account->logo = $logoUrl;
+        }
+        $account->balance = $request->balance ?? 0;
+        $account->active = true;
+        $account->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account Added successful.',
+        ], Response::HTTP_CREATED);
     }
 
 

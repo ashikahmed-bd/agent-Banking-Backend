@@ -15,6 +15,12 @@ class Customer extends Model
         'company_id',
     ];
 
+
+    public function getAvatarAttribute(): string
+    {
+        return asset('images/default.png');
+    }
+
     public function company() {
         return $this->belongsTo(Company::class);
     }
