@@ -15,11 +15,16 @@ class CompanySeeder extends Seeder
     public function run(): void
     {
         DB::table('companies')->insert([
-            'name' => 'Toha Fashion House',
-            'phone' => '01911742235',
-            'email' => '01911742235',
-            'address' => 'Rowmari',
-            'user_id' => User::query()->skip(1)->firstOrFail()->id,
+            [
+                'name' => 'Shawon Boutique House',
+                'phone' => '01917360036',
+                'address' => 'Rowmari',
+            ],
+            [
+                'name' => 'Toha Boutique House',
+                'phone' => '01717360036',
+                'address' => 'Kurigram',
+            ]
         ]);
     }
 }

@@ -20,7 +20,6 @@ class AccountResource extends JsonResource
             'number' => $this->number,
             'logo_url' => $this->logo_url,
             'balance' => $this->balance,
-            'active' => $this->active,
             'default' => (bool) $this->default,
         ];
     }

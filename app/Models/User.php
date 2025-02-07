@@ -11,7 +11,6 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
     /**
@@ -50,10 +49,10 @@ class User extends Authenticatable
         return asset('images/default.png');
     }
 
-    public function companies(): HasMany
+    public function companies()
     {
-        return $this->hasMany(Company::class);
+        return $this->belongsToMany(Company::class, 'user_companies')
+            ->withPivot('user_type') // user_type (e.g., admin, owner, user)
+            ->withTimestamps();
     }
-
-
 }

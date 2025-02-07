@@ -13,17 +13,14 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class AccountController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $accounts = Account::query()
-            ->where('default', '=', false)
-            ->paginate($request->limit);
+        $accounts = Account::query()->get();
         return AccountResource::collection($accounts);
     }
 
@@ -33,20 +30,14 @@ class AccountController extends Controller
         $request->validate([
             'name' => ['required', 'string'],
             'number' => ['required', 'string'],
+            'opening_balance' => ['required', 'string'],
         ]);
 
-
         $account = new Account();
-        $account->name = $request->name;
+        $account->name = Str::ucfirst($request->name);
         $account->number = $request->number;
-
-        if ($request->hasFile('logo')){
-            $logoUrl = $request->file('logo')->store('accounts', config('app.disk'));
-            Image::read($request->file('logo'))->resize(128, 128)->save(Storage::disk(config('app.disk'))->path($logoUrl));
-            $account->logo = $logoUrl;
-        }
-        $account->balance = $request->balance ?? 0;
-        $account->active = true;
+        $account->opening_balance = $request->opening_balance;
+        $account->logo = Str::snake($request->name).'.svg';
         $account->save();
 
         return response()->json([
@@ -68,11 +59,11 @@ class AccountController extends Controller
             ->where('balance', '>', 0) // Customers with extra balance
             ->sum('balance');
 
-        $todayProfit = Transaction::query()
+        $todayCommission = Transaction::query()
             ->whereDate('date', '=' , Carbon::parse(now())->toDateString())
-            ->sum('profit');
+            ->sum('commission');
 
-        $totalProfit = Transaction::query()->sum('profit');
+        $totalCommission = Transaction::query()->sum('commission');
 
         return response()->json([
             'cash' => $account->where('default', '=', true)->sum('balance'),
@@ -81,9 +72,9 @@ class AccountController extends Controller
                 'due' => $total_due,
                 'payable' => $total_payable,
             ],
-            'profit' => [
-                'today' => $todayProfit,
-                'total' => $totalProfit,
+            'commission' => [
+                'today' => $todayCommission,
+                'total' => $totalCommission,
             ],
         ], Response::HTTP_OK);
     }
@@ -101,28 +92,15 @@ class AccountController extends Controller
         ]);
 
         $amount = $request->amount;
-        $profit = $request->profit;
-
-        // Get default cash account
-        $cash = Account::query()->where('default', '=', true)->firstOrFail();
-
-        if ($cash->getBalance() <= 0){
-            throw new InsufficientBalance;
-        }
-        $cash->decrement('balance', $amount);
+        $commission = $request->commission;
 
         // Atomic transaction for better concurrency
-        DB::transaction(function () use ($account_id, $amount, $profit) {
-            $account = Account::query()->lockForUpdate()->findOrFail($account_id); // Lock row for consistency
-            $account->increment('balance', $amount);
-
-            // Log transaction
+        DB::transaction(function () use ($account_id, $amount, $commission) {
             Transaction::query()->create([
                 'account_id' => $account_id,
                 'type' => PaymentType::CREDIT,
                 'amount' => $amount,
-                'profit' => $profit,
-                'balance_after_transaction' => $account->balance,
+                'commission' => $commission,
                 'date' => now(),
             ]);
         });

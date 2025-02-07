@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentType;
 use App\Http\Resources\CustomerResource;
+use App\Http\Resources\PaymentResource;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -77,8 +78,6 @@ class CustomerController extends Controller
         $customer = Customer::query()->findOrFail($id);
 
         if ($request->due > 0){
-            $customer->balance -= $request->due;
-
             $customer->payments()->create([
                 'type' => PaymentType::DEBIT,
                 'amount' => $request->due,
@@ -87,8 +86,6 @@ class CustomerController extends Controller
         }
 
         if ($request->payable > 0){
-            $customer->balance += $request->payable;
-
             $customer->payments()->create([
                 'type' => PaymentType::CREDIT,
                 'amount' => $request->payable,
@@ -107,9 +104,12 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function getReport(string $id)
     {
-        //
+        $customer = Customer::query()->findOrFail($id);
+        $payments = $customer->payments()->with(['user'])->orderBy('created_at')->get();
+
+        return PaymentResource::collection($payments);
     }
 
     /**

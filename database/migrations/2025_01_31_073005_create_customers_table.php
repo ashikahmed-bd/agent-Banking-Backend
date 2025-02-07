@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone')->nullable();
             $table->double('balance')->default(0);
+
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

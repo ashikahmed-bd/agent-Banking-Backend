@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use App\Enums\PaymentType;
-use App\Exceptions\InsufficientBalance;
+use App\Traits\HasCompanyScope;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class Account extends Model
 {
+    use HasCompanyScope;
     protected $guarded = [];
 
     protected $hidden = [
@@ -19,7 +20,8 @@ class Account extends Model
         'company_id',
     ];
 
-    public function company() {
+    public function company(): BelongsTo
+    {
         return $this->belongsTo(Company::class);
     }
 
@@ -34,74 +36,40 @@ class Account extends Model
         return self::query()->where('default', true)->firstOrFail();
     }
 
-    public function deposit($amount, string $note = null): void
-    {
-        $this->balance += $amount;
-
-        $this->transactions()->create([
-            'amount' => $amount,
-            'date' => now(),
-            'type' => PaymentType::CREDIT,
-            'balance_after_transaction' => $this->balance,
-            'note' => $note,
-        ]);
-
-        $this->save();
-    }
-
-    /**
-     * @throws InsufficientBalance
-     */
-    public function withdraw($amount, string $note = null): void
-    {
-        if ($amount > $this->balance) {
-            throw new InsufficientBalance;
-        }
-        $this->balance -= $amount;
-        $this->save();
-
-        $this->transactions()->create([
-            'amount' => $amount,
-            'date' => now(),
-            'type' => PaymentType::DEBIT,
-            'balance_after_transaction' => $this->balance,
-            'note' => $note,
-        ]);
-    }
-
-    public function getBalance()
-    {
-        return $this->balance;
-    }
-
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
 
 
-    protected static function booted(): void
+    /**
+     * Get the current balance.
+     *
+     * @return string
+     */
+    public function getBalanceAttribute()
     {
-        static::creating(function ($customer) {
-            if (Auth::check()) {
-                $companyId = Auth::user()->companies()->first()->id ?? null;
-                if (!$companyId) {
-                    abort(403, trans('messages.no_company')); // Prevents saving without a company
-                }
-                $customer->company_id = $companyId;
-            }
-        });
+        // Opening Balance
+        $total = $this->opening_balance;
 
-        // Global Scope to filter by company
-        static::addGlobalScope('company_filter', function (Builder $builder) {
-            if (Auth::check()) {
-                $companyId = Auth::user()->companies()->pluck('id')->toArray();
-                if (!$companyId) {
-                    abort(403, trans('messages.no_company'));
-                }
-                $builder->whereIn('company_id', $companyId);
-            }
-        });
+        // Sum Credit
+        $total += $this->transactions()->where('type', '=', (PaymentType::CREDIT)->value)->sum('amount');
+
+        // Subtract Debit
+        $total -= $this->transactions()->where('type', '=', (PaymentType::DEBIT)->value)->sum('amount');
+
+        return $total;
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function ($model){
+            $companyId = Auth::user()->companies()->first()->id ?? null;
+            if (!$companyId) {
+                abort(403, trans('messages.no_company')); // Prevents saving without a company
+            }
+            $model->company_id = $companyId;
+        });
+
+    }
 }

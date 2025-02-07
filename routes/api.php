@@ -9,6 +9,7 @@ use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfitController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,14 +26,10 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('user', [AuthController::class, 'user']);
     Route::post('logout', [AuthController::class, 'logout']);
 
-    Route::get('companies', [CompanyController::class, 'index']); // Show only user’s companies
-    Route::get('transactions', [TransactionController::class, 'index']); // Show user’s company transactions
-
     Route::get('accounts', [AccountController::class, 'index']);
     Route::post('account/store', [AccountController::class, 'store']);
-
     Route::get('balance', [AccountController::class, 'getBalance']);
-
+    Route::get('transactions', [TransactionController::class, 'index']);
 
     Route::post('account/{account}/deposit', [AccountController::class, 'deposit']);
     Route::post('account/{account}/withdraw', [AccountController::class, 'withdraw']);
@@ -54,6 +51,13 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('customer/store', [CustomerController::class, 'store']);
     Route::get('customer/{customer}/show', [CustomerController::class, 'show']);
     Route::post('customer/{customer}/payment', [CustomerController::class, 'payment']);
+    Route::get('customer/{customer}/report', [CustomerController::class, 'getReport']);
+
+    Route::get('users', [UserController::class, 'index']);
+    Route::post('user/store', [UserController::class, 'store']);
+    Route::get('user/{user}/show', [UserController::class, 'show']);
+    Route::put('user/{user}/update', [UserController::class, 'update']);
+    Route::delete('user/{user}/delete', [UserController::class, 'destroy']);
 
 });
 Route::get('reboot', [SettingsController::class, 'reboot']);
