@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Console\Scheduling\Schedule;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,12 +19,19 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
         ]);
     })
+
+    ->withSchedule(function (Schedule $schedule) {
+        $schedule->command('backup:clean')->daily()->at('01:00');
+        $schedule->command('backup:run')->daily()->at('01:30');
+    })
+
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             return response()->json([
