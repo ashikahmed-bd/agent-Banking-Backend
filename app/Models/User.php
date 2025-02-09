@@ -52,7 +52,8 @@ class User extends Authenticatable
     public function companies()
     {
         return $this->belongsToMany(Company::class, 'user_companies')
-            ->withPivot('user_type') // user_type (e.g., admin, owner, user)
+            ->withPivot('type')
             ->withTimestamps();
     }
+
 }

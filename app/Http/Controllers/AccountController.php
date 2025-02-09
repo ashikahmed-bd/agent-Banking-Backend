@@ -30,14 +30,15 @@ class AccountController extends Controller
         $request->validate([
             'name' => ['required', 'string'],
             'number' => ['required', 'string'],
-            'opening_balance' => ['required', 'string'],
+            'balance' => ['required', 'string'],
         ]);
 
         $account = new Account();
         $account->name = Str::ucfirst($request->name);
         $account->number = $request->number;
-        $account->opening_balance = $request->opening_balance;
+        $account->balance = $request->balance;
         $account->logo = Str::snake($request->name).'.svg';
+        $account->company_id = Auth::user()->companies()->first()->id ?? null;
         $account->save();
 
         return response()->json([
@@ -47,134 +48,78 @@ class AccountController extends Controller
     }
 
 
+    public function deposit(Request $request, string $account)
+    {
+        $account = Account::query()->findOrFail($account);
+
+        // Log transaction
+        Transaction::query()->create([
+            'account_id' => $account->id,
+            'type' => PaymentType::CREDIT,
+            'amount' => $request->amount,
+            'commission' => $request->commission,
+            'net_amount' => ($request->amount + $request->commission),
+            'description' => 'Cash to Bank transfer'
+        ]);
+
+        return response()->json([
+            'message' => 'Transfer successful',
+            'new_balance' => $account,
+        ], 200);
+    }
+
+    public function withdraw(Request $request, string $account)
+    {
+        $account = Account::query()->findOrFail($account);
+
+        // Log transaction
+        Transaction::query()->create([
+            'account_id' => $account->id,
+            'type' => PaymentType::DEBIT,
+            'amount' => $request->amount,
+            'commission' => $request->commission,
+            'net_amount' => ($request->amount + $request->commission),
+            'description' => 'Cash to Bank transfer'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdraw successful.',
+            'current_balance' => $account->balance,
+        ], Response::HTTP_OK);
+    }
+
+
     public function getBalance()
     {
-        $account = Account::query()->get();
+        // Get all accounts
+        $accounts = Account::all();
 
-        $total_due = Customer::query()
-            ->where('balance', '<', 0) // Customers who owe money
-            ->sum('balance');
+        // Sum the 'opening_balance' from all accounts
+        $total = $accounts->sum('opening_balance');
 
-        $total_payable = Customer::query()
-            ->where('balance', '>', 0) // Customers with extra balance
-            ->sum('balance');
+        // Sum all CREDIT transactions for all accounts
+        $creditTotal = Transaction::query()->whereIn('account_id', $accounts->pluck('id'))
+            ->where('type', PaymentType::CREDIT->value)
+            ->sum('amount');
 
-        $todayCommission = Transaction::query()
-            ->whereDate('date', '=' , Carbon::parse(now())->toDateString())
-            ->sum('commission');
+        $debitTotal = Transaction::query()->whereIn('account_id', $accounts->pluck('id'))
+            ->where('type', PaymentType::DEBIT->value)
+            ->sum('amount');
 
-        $totalCommission = Transaction::query()->sum('commission');
-
-        return response()->json([
-            'cash' => $account->where('default', '=', true)->sum('balance'),
-            'accounts' => $account->where('default', '=', false)->sum('balance'),
-            'wallet' => [
-                'due' => $total_due,
-                'payable' => $total_payable,
-            ],
-            'commission' => [
-                'today' => $todayCommission,
-                'total' => $totalCommission,
-            ],
-        ], Response::HTTP_OK);
+        // Add credit transactions to total balance
+        return ($total + $creditTotal) - $debitTotal;
     }
 
-
-    /**
-     * @throws InsufficientBalance
-     */
-    public function deposit(Request $request, string $account_id)
+    public function getTransactions(Request $request, string $id)
     {
-
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'note' => 'nullable|string',
-        ]);
-
-        $amount = $request->amount;
-        $commission = $request->commission;
-
-        // Atomic transaction for better concurrency
-        DB::transaction(function () use ($account_id, $amount, $commission) {
-            Transaction::query()->create([
-                'account_id' => $account_id,
-                'type' => PaymentType::CREDIT,
-                'amount' => $amount,
-                'commission' => $commission,
-                'date' => now(),
-            ]);
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Deposit successful.',
-        ], Response::HTTP_OK);
-    }
-
-    public function withdraw(Request $request, $account_id)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'note' => 'nullable|string',
-        ]);
-
-        $amount = $request->amount;
-        $profit = $request->profit;
-
-        DB::transaction(function () use ($account_id, $amount, $profit) {
-            $account = Account::query()->lockForUpdate()->findOrFail($account_id); // Lock row for consistency
-
-            // Check sufficient balance
-            if ($account->getBalance() < $amount) {
-                throw new InsufficientBalance;
-            }
-            // Update balance
-            $account->decrement('balance', $amount);
-
-            // Update cash
-            $cash = Account::query()->where('default', '=', true)->firstOrFail();
-            $cash->increment('balance', $amount);
-
-            // Log transaction
-            Transaction::query()->create([
-                'account_id' => $account_id,
-                'type' => PaymentType::DEBIT,
-                'amount' => $amount,
-                'profit' => $profit,
-                'balance_after_transaction' => $account->balance,
-                'date' => now(),
-            ]);
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Withdrawal successful.',
-        ], Response::HTTP_OK);
-    }
-
-
-    public function getTransactions()
-    {
-        $transactions = Transaction::query()
-            ->with(['account'])
-            ->latest()
-            ->take(10)
-            ->get();
-        return TransactionResource::collection($transactions);
-    }
-
-
-    public function getHistory(Request $request, string $id)
-    {
-
         $account = Account::query()->findOrFail($id);
+        $transactions = $account->transactions()
+            ->with(['user'])
+            ->whereDate('created_at', '=', Carbon::parse($request->date)
+                ->toDateString())->get();
 
-        return response()->json([
-            'account' => $account,
-            'transactions' => $account->transactions()
-                ->whereDate('date', '=', Carbon::parse($request->date)
-                    ->toDateString())->get(),
-        ], Response::HTTP_OK);
+        return TransactionResource::collection($transactions);
     }
 
 }

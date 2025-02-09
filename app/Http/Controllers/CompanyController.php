@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CompanyResource;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
 class CompanyController extends Controller
 {
@@ -22,7 +25,34 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => ['required', 'string'],
+            'phone' => ['required', 'string', Rule::unique('companies', 'phone')],
+        ]);
+
+
+        $company = Company::query()->create([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'active' => $request->active ?? true,
+        ]);
+
+        $company->accounts()->create([
+            'name' => "Cash",
+            'number' => "1",
+            'logo' => "cash.svg",
+            'opening_balance' => 0,
+            'default' => true,
+        ]);
+
+        // Attach company to user logged in
+        $request->user()->companies()->attach($company);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Company Created Successful.',
+        ], Response::HTTP_OK);
     }
 
     /**

@@ -31,7 +31,7 @@ class Account extends Model
             ->url($this->logo);
     }
 
-    public static function getDefaultAccount()
+    public static function default()
     {
         return self::query()->where('default', true)->firstOrFail();
     }
@@ -64,12 +64,8 @@ class Account extends Model
     protected static function booted(): void
     {
         static::saving(function ($model){
-            $companyId = Auth::user()->companies()->first()->id ?? null;
-            if (!$companyId) {
-                abort(403, trans('messages.no_company')); // Prevents saving without a company
-            }
-            $model->company_id = $companyId;
+            $model->created_by = Auth::id();
         });
-
     }
+
 }

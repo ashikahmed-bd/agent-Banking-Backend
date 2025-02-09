@@ -19,11 +19,10 @@ return new class extends Migration
             $table->string('type')->default('');
             $table->double('amount')->default(0);
             $table->double('commission')->nullable()->default(0);
-            $table->date('date');
-            $table->string('note')->nullable();
-
+            $table->double('net_amount')->nullable()->default(0);
+            $table->string('description')->nullable();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });
     }

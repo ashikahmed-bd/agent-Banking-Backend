@@ -35,4 +35,10 @@ class Company extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function ($model){
+            $model->created_by = Auth::id();
+        });
+    }
 }

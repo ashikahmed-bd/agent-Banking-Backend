@@ -115,8 +115,19 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function getTotalBalance()
     {
-        //
+        $total_due = Customer::query()
+            ->where('balance', '<', 0) // Customers who owe money
+            ->sum('balance');
+
+        $total_payable = Customer::query()
+            ->where('balance', '>', 0) // Customers with extra balance
+            ->sum('balance');
+
+        return [
+            'total_due' => $total_due,
+            'total_payable' => $total_payable,
+        ];
     }
 }

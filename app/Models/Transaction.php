@@ -30,9 +30,9 @@ class Transaction extends Model
     }
 
 
-    public function created_by(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     protected static function booted(): void

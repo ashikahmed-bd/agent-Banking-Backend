@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->string('address')->nullable();
             $table->boolean('active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });
 
@@ -24,7 +26,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->enum('user_type', ['admin', 'owner', 'user']);
+            $table->string('type')->default((UserType::OWNER));
             $table->timestamps();
         });
     }

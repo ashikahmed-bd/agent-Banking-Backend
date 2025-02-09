@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\PaymentType;
 use App\Traits\HasCompanyScope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;

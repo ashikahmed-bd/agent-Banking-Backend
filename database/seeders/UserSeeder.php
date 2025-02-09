@@ -22,7 +22,6 @@ class UserSeeder extends Seeder
                 'email' => 'info@ashikahmed.net',
                 'email_verified_at' => now(),
                 'password' => bcrypt('password'),
-                'role' => UserType::ADMIN,
             ],
 
             [
@@ -31,7 +30,6 @@ class UserSeeder extends Seeder
                 'email' => 'maidul@ashikahmed.net',
                 'email_verified_at' => now(),
                 'password' => bcrypt('password'),
-                'role' => UserType::VENDOR,
             ],
         ]);
     }

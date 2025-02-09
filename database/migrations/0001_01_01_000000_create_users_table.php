@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default((UserType::VENDOR)->value);
             $table->boolean('active')->default(true);
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });
     }
