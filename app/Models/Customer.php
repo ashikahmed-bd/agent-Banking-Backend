@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\PaymentType;
 use App\Traits\HasCompanyScope;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Customer extends Model
 {
@@ -31,14 +33,38 @@ class Customer extends Model
         return $this->hasMany(Payment::class);
     }
 
-    public function getBalanceAttribute()
+    /**
+     * @throws Exception
+     */
+    public function deposit(int $amount)
     {
-        $credit = $this->payments()->where('type', '=', (PaymentType::CREDIT)->value)->sum('amount');
+        if ($amount <= 0) {
+            throw new Exception("Invalid deposit amount.");
+        }
 
-        // Subtract Debit
-        $debit = $this->payments()->where('type', '=', (PaymentType::DEBIT)->value)->sum('amount');
+        DB::transaction(function () use ($amount) {
+            $this->increment('balance', $amount);
+            $this->save();
+        });
 
-        return $credit - $debit;
+        return $this->balance;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function withdraw($amount)
+    {
+        if ($amount <= 0) {
+            throw new Exception("Invalid withdrawal amount.");
+        }
+
+        DB::transaction(function () use ($amount) {
+            $this->decrement('balance', $amount);
+            $this->save();
+        });
+
+        return $this->balance;
     }
 
     protected static function booted(): void

@@ -22,23 +22,17 @@ class CustomerController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * @throws \Exception
      */
     public function store(Request $request)
     {
         $customer = new Customer();
         $customer->name = $request->name;
         $customer->phone = $request->phone;
-
-        if ($request->has('due')){
-            $customer->balance -= $request->due;
-        }
-        if ($request->has('payable')){
-            $customer->balance += $request->payable;
-        }
         $customer->save();
 
-        // Now customer_id exists, we can safely create the payment
         if ($request->due > 0){
+            $customer->withdraw($request->due);
             $customer->payments()->create([
                 'type' => PaymentType::DEBIT,
                 'amount' => $request->due,
@@ -46,8 +40,8 @@ class CustomerController extends Controller
             ]);
         }
 
-        // Now customer_id exists, we can safely create the payment
         if ($request->payable > 0) {
+            $customer->deposit($request->payable);
             $customer->payments()->create([
                 'type' => PaymentType::CREDIT,
                 'amount' => $request->payable,
@@ -78,6 +72,7 @@ class CustomerController extends Controller
         $customer = Customer::query()->findOrFail($id);
 
         if ($request->due > 0){
+            $customer->withdraw($request->due);
             $customer->payments()->create([
                 'type' => PaymentType::DEBIT,
                 'amount' => $request->due,
@@ -86,6 +81,7 @@ class CustomerController extends Controller
         }
 
         if ($request->payable > 0){
+            $customer->deposit($request->payable);
             $customer->payments()->create([
                 'type' => PaymentType::CREDIT,
                 'amount' => $request->payable,
