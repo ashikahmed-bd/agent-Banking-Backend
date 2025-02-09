@@ -99,23 +99,7 @@ class AccountController extends Controller
 
     public function getBalance()
     {
-        // Get all accounts
-        $accounts = Account::all();
-
-        // Sum the 'opening_balance' from all accounts
-        $total = $accounts->sum('opening_balance');
-
-        // Sum all CREDIT transactions for all accounts
-        $creditTotal = Transaction::query()->whereIn('account_id', $accounts->pluck('id'))
-            ->where('type', PaymentType::CREDIT->value)
-            ->sum('amount');
-
-        $debitTotal = Transaction::query()->whereIn('account_id', $accounts->pluck('id'))
-            ->where('type', PaymentType::DEBIT->value)
-            ->sum('amount');
-
-        // Add credit transactions to total balance
-        return ($total + $creditTotal) - $debitTotal;
+        return Account::query()->sum('balance');
     }
 
     public function getTransactions(Request $request, string $id)
