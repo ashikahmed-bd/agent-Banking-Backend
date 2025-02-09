@@ -42,7 +42,7 @@ class CompanyController extends Controller
             'name' => "Cash",
             'number' => "1",
             'logo' => "cash.svg",
-            'opening_balance' => 0,
+            'balance' => 0,
             'default' => true,
         ]);
 
