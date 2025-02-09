@@ -34,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::get('balance', [AccountController::class, 'getBalance']);
     });
 
+    Route::get('balances', [AccountController::class, 'getAllBalances']);
+    Route::get('transactions', [AccountController::class, 'getLatestTransactions']);
+
     Route::prefix('customers')->group(function (){
         Route::get('all', [CustomerController::class, 'index']);
         Route::post('store', [CustomerController::class, 'store']);

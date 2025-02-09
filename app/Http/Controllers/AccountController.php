@@ -6,6 +6,7 @@ use App\Enums\PaymentType;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Account;
+use App\Models\Customer;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Exception;
@@ -126,6 +127,39 @@ class AccountController extends Controller
                 ->toDateString())->get();
 
         return TransactionResource::collection($transactions);
+    }
+
+
+    public function getLatestTransactions()
+    {
+        $transactions = Transaction::query()->with(['user' , 'account'])
+            ->whereDate('created_at', '=', Carbon::parse(now())
+                ->toDateString())->get();
+        return TransactionResource::collection($transactions);
+    }
+
+
+    public function getAllBalances()
+    {
+
+        $cash = Account::query()->get();
+
+        $due = Customer::query()
+            ->where('balance', '<', 0) // Customers who owe money
+            ->sum('balance');
+
+        $payable = Customer::query()
+            ->where('balance', '>', 0) // Customers with extra balance
+            ->sum('balance');
+
+        return [
+            'cash' => $cash->where('default', '=', true)->sum('balance'),
+            'accounts' => $cash->where('default', '=', false)->sum('balance'),
+            'wallet' => [
+                'due' => $due,
+                'payable' => $payable,
+            ]
+        ];
     }
 
 }

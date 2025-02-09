@@ -16,7 +16,6 @@ class TransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'account' => AccountResource::make($this->whenLoaded('account')),
             'type' => $this->type,
             'amount' => $this->amount,
             'commission' => $this->commission,
@@ -24,6 +23,15 @@ class TransactionResource extends JsonResource
                 'created_by' => [
                     'id' => $this->user->id,
                     'name' => $this->user->name,
+                ],
+            ]),
+
+            $this->mergeWhen($this->whenLoaded('account'), [
+                'account' => [
+                    'id' => $this->account->id,
+                    'name' => $this->account->name,
+                    'number' => $this->account->number,
+                    'logo_url' => $this->account->logo_url,
                 ],
             ]),
             'created_by' => $this->whenLoaded('created_by'),
