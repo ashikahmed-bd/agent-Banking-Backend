@@ -8,6 +8,7 @@ use App\Http\Resources\TransactionResource;
 use App\Models\Account;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -45,9 +46,13 @@ class AccountController extends Controller
     }
 
 
-    public function deposit(Request $request, string $account)
+    /**
+     * @throws Exception
+     */
+    public function deposit(Request $request, string $account): \Illuminate\Http\JsonResponse
     {
         $account = Account::query()->findOrFail($account);
+        $account->deposit($request->amount);
 
         // Log transaction
         Transaction::query()->create([
@@ -65,9 +70,13 @@ class AccountController extends Controller
         ], 200);
     }
 
-    public function withdraw(Request $request, string $account)
+    /**
+     * @throws Exception
+     */
+    public function withdraw(Request $request, string $account): \Illuminate\Http\JsonResponse
     {
         $account = Account::query()->findOrFail($account);
+        $account->withdraw($request->amount);
 
         // Log transaction
         Transaction::query()->create([
