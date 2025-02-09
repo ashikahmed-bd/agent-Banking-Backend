@@ -35,8 +35,8 @@
         <th>A/C No</th>
         <th>Credit</th>
         <th>Debit</th>
-        <th>Profit</th>
-        <th>After</th>
+        <th>Commission</th>
+        <th>Net Amount</th>
     </tr>
     </thead>
 
@@ -57,8 +57,8 @@
                 <td></td>
             @endif
 
-            <td>{{$transaction->profit}}</td>
-            <td>{{$transaction->balance_after_transaction}}</td>
+            <td>{{$transaction->commission}}</td>
+            <td>{{$transaction->net_amount}}</td>
         </tr>
     @endforeach
     </tbody>

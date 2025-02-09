@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\Customer;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class PdfController extends Controller
 {
@@ -15,7 +17,7 @@ class PdfController extends Controller
 
         $transactions = Transaction::query()
             ->with(['account'])
-            ->whereDate('date', '=', Carbon::parse(now())->toDateString())
+            ->whereDate('created_at', '=', Carbon::parse(now())->toDateString())
             ->latest()->get();
 
         $pdf = Pdf::loadView('pdf.transactions', [
@@ -37,12 +39,27 @@ class PdfController extends Controller
             ->whereDate('date', '=', Carbon::parse($request->date)->toDateString())
             ->latest()->get();
 
-        return $transactions;
 
         $pdf = Pdf::loadView('pdf.transactions', [
             'title' => 'Daily Report',
             'account' => $account,
         ]);
         return $pdf->download('invoice.pdf');
+    }
+
+
+    public function getCustomers()
+    {
+        $customers = Customer::query()
+            ->with(['payments'])
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.customers_report', [
+            'title' => 'Customers Report',
+            'date' => Carbon::parse(now())->toDateString(),
+            'company' => Auth::user()->companies()->get(),
+            'customers' => $customers,
+        ]);
+        return $pdf->download('customers-report.pdf');
     }
 }

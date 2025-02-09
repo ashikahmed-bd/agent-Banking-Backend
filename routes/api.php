@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::prefix('pdf')->group(function (){
         Route::get('transactions', [PdfController::class, 'getTransactionsPrint']);
         Route::get('account/{account}/history', [PdfController::class, 'getHistory']);
+        Route::get('customers', [PdfController::class, 'getCustomers']);
     });
 
 });
