@@ -16,5 +16,10 @@ return [
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
-
+    'disabled' => 'Your account has been disabled. Please contact support.',
+    'verify' => 'You need to verify your email before logging in.',
+    'login_attempts' => 'Your account has been disabled due to too many login attempts. Please contact support.',
+    'not_found' => 'This email address not found. Please try again.',
+    'logout' => 'You are logout successfully!',
+    'no_company' => 'No company assigned to your account. Please, contact the system administrator.',
 ];

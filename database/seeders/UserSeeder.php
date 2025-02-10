@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\UserType;
-use App\Models\Business;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +21,8 @@ class UserSeeder extends Seeder
                 'email' => 'info@ashikahmed.net',
                 'email_verified_at' => now(),
                 'password' => bcrypt('password'),
+                'type' => UserType::ADMIN,
+                'active' => true,
             ],
         ]);
     }

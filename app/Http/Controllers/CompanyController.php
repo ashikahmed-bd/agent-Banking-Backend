@@ -35,7 +35,6 @@ class CompanyController extends Controller
             'name' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address,
-            'active' => $request->active ?? true,
         ]);
 
         $company->accounts()->create([
@@ -52,7 +51,7 @@ class CompanyController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Company Created Successful.',
-        ], Response::HTTP_OK);
+        ], Response::HTTP_CREATED);
     }
 
     /**

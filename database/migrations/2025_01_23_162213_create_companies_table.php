@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('phone')->unique();
             $table->string('address')->nullable();
-            $table->boolean('active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });
@@ -26,7 +25,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->string('type')->default((UserType::OWNER));
             $table->timestamps();
         });
     }

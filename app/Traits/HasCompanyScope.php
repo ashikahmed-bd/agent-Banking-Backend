@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Auth;
 
 trait HasCompanyScope
 {
-    protected static function bootHasCompanyScope()
+    protected static function bootHasCompanyScope(): void
     {
         static::addGlobalScope('company_scope', function (Builder $builder) {
             if (Auth::check()) {
                 $companyIds = Auth::user()->companies->pluck('id');
 
                 if ($companyIds->isEmpty()) {
-                    abort(403, __('Company not found. You must be assigned to a company.'));
+                    abort(403, trans('auth.no_company'));
                 }
 
                 $builder->whereIn('company_id', $companyIds);
