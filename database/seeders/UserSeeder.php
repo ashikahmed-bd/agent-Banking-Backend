@@ -23,14 +23,6 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => bcrypt('password'),
             ],
-
-            [
-                'name' => 'Maidul Islam',
-                'phone' => '01917360036',
-                'email' => 'maidul@ashikahmed.net',
-                'email_verified_at' => now(),
-                'password' => bcrypt('password'),
-            ],
         ]);
     }
 }

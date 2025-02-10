@@ -14,6 +14,7 @@ return [
     */
 
     'disk' => env('APP_DISK', 'public'),
+    'client_url' => env('CLIENT_URL', 'http://localhost:5173'),
     'name' => env('APP_NAME', 'Laravel'),
 
     /*

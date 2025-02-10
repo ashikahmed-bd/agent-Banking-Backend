@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
@@ -22,12 +24,22 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => ['required', 'string'],
+            'phone' => ['required', 'string', Rule::unique('users', 'phone')],
+            'email' => ['required', 'string', Rule::unique('users', 'email')],
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+
         $owner = Auth::user();
 
         if (!$owner->companies()->exists()) {
-            return response()->json(['error' => 'Company not found'], 403);
+            return response()->json([
+                'success' => false,
+                'error' => trans('messages.no_company'),
+            ], Response::HTTP_FORBIDDEN);
         }
-
 
         $user = User::query()->create([
             'name' => $request->name,
@@ -36,7 +48,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $owner->companies()->first()->users()->attach($user->id, ['user_type' => $request->role]);
+        $owner->companies()->first()->users()->attach($user->id, ['type' => $request->type]);
 
         return response()->json(['message' => 'User added successfully'], 201);
     }

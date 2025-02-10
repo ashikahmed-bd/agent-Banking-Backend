@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function (){
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+
+
 });
 
 // Route group for authentication user only
@@ -59,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::get('account/{account}/history', [PdfController::class, 'getHistory']);
         Route::get('customers', [PdfController::class, 'getCustomers']);
     });
+
+    Route::post('invite', [InvitationController::class, 'invite']);
 
 });
 
