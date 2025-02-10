@@ -65,9 +65,10 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::post('invite', [InvitationController::class, 'invite']);
 
+    Route::get('reboot', [SettingsController::class, 'reboot']);
+    Route::get('seed', [SettingsController::class, 'seed']);
 });
 
 
 
-Route::get('reboot', [SettingsController::class, 'reboot']);
-Route::get('seed', [SettingsController::class, 'seed']);
+
