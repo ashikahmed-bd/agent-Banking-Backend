@@ -18,10 +18,11 @@
         }
 
         th{
-
+            padding: 0 6px;
         }
 
         td{
+            padding: 0 6px;
 
         }
     </style>
@@ -46,19 +47,19 @@
             <td>{{$transaction->account->name}}</td>
             <td>{{$transaction->account->number}}</td>
             @if($transaction->type === 'credit')
-                <td>{{$transaction->amount}}</td>
+                <td style="text-align: right;">{{$transaction->amount}}</td>
             @else
                 <td></td>
             @endif
 
             @if($transaction->type === 'debit')
-                <td>{{$transaction->amount}}</td>
+                <td style="text-align: right;">{{$transaction->amount}}</td>
             @else
                 <td></td>
             @endif
 
-            <td>{{$transaction->commission}}</td>
-            <td>{{$transaction->net_amount}}</td>
+            <td style="text-align: right;">{{$transaction->commission}}</td>
+            <td style="text-align: right;">{{$transaction->net_amount}}</td>
         </tr>
     @endforeach
     </tbody>

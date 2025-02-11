@@ -54,11 +54,21 @@ class PdfController extends Controller
             ->with(['payments'])
             ->get();
 
+        $total_due = Customer::query()
+            ->where('balance', '<', 0) // Customers who owe money
+            ->sum('balance');
+
+        $total_payable = Customer::query()
+            ->where('balance', '>', 0) // Customers with extra balance
+            ->sum('balance');
+
         $pdf = Pdf::loadView('pdf.customers_report', [
             'title' => 'Customers Report',
             'date' => Carbon::parse(now())->toDateString(),
             'company' => Auth::user()->companies()->get(),
             'customers' => $customers,
+            'total_due' => $total_due,
+            'total_payable' => $total_payable,
         ]);
         return $pdf->download('customers-report.pdf');
     }

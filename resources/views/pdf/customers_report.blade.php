@@ -62,6 +62,16 @@
         </tr>
     @endforeach
     </tbody>
+
+    <tfoot>
+    <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th>Total Due:{{$total_due}}</th>
+        <th>Total Payable: {{$total_payable}}</th>
+    </tr>
+    </tfoot>
 </table>
 </body>
 
