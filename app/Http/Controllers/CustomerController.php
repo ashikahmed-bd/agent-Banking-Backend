@@ -14,9 +14,9 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $customers = Customer::query()->paginate($request->limit);
+        $customers = Customer::query()->get();
         return CustomerResource::collection($customers);
     }
 
@@ -125,5 +125,24 @@ class CustomerController extends Controller
             'total_due' => $total_due,
             'total_payable' => $total_payable,
         ];
+    }
+
+
+    public function destroy(string $id)
+    {
+        $customer = Customer::query()->findOrFail($id);
+
+        if ($customer->balance <> 0){
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer can`t be deleted. this customer balance exists',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        $customer->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer deleted successful',
+        ], Response::HTTP_OK);
     }
 }

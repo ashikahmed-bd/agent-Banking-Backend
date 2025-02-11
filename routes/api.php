@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function (){
         Route::post('{customer}/payment', [CustomerController::class, 'payment']);
         Route::get('{customer}/report', [CustomerController::class, 'getReport']);
         Route::get('wallet', [CustomerController::class, 'getTotalBalance']);
+        Route::delete('{customer}/delete', [CustomerController::class, 'destroy']);
     });
 
     Route::prefix('users')->group(function (){

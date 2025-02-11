@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Enums\PaymentType;
-use App\Traits\HasCompanyScope;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class Customer extends Model
 {
-    use HasCompanyScope;
+    use HasFactory;
     protected $guarded = [];
 
     protected $hidden = [
@@ -69,7 +69,19 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::saving(function ($model){
+        static::addGlobalScope('company_scope', function (Builder $builder) {
+            if (Auth::check()) {
+                $companyIds = Auth::user()->companies->pluck('id');
+
+                if ($companyIds->isEmpty()) {
+                    abort(403, trans('auth.no_company'));
+                }
+
+                $builder->whereIn('company_id', $companyIds);
+            }
+        });
+
+        static::creating(function ($model){
             $companyId = Auth::user()->companies()->first()->id ?? null;
             if (!$companyId) {
                 abort(403, trans('messages.no_company')); // Prevents saving without a company
