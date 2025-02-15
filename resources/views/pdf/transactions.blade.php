@@ -49,10 +49,10 @@
     <table style="padding: 20px 0; border: none; text-align: center;">
         <tbody>
         <tr>
-            <td style="border: none;">Cash: </td>
-            <td style="border: none;">Accounts: </td>
-            <td style="border: none;">Total Due:{{$total_due}}</td>
-            <td style="border: none;">Total Payable: {{$total_payable}}</td>
+            <td style="border: none;">Cash: {{NumberFormat($cash)}}</td>
+            <td style="border: none;">Accounts: {{NumberFormat($accounts)}}</td>
+            <td style="border: none;">Total Due:{{NumberFormat($total_due)}}</td>
+            <td style="border: none;">Total Payable: {{NumberFormat($total_payable)}}</td>
         </tr>
         </tbody>
     </table>

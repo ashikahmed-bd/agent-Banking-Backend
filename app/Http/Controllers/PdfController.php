@@ -29,9 +29,13 @@ class PdfController extends Controller
             ->where('balance', '>', 0) // Customers with extra balance
             ->sum('balance');
 
+        $cash = Account::query()->get();
+
         $pdf = Pdf::loadView('pdf.transactions', [
             'title' => 'Daily Report',
             'company' => Auth::user()->companies()->get(),
+            'cash' => $cash->where('default', '=', true)->sum('balance'),
+            'accounts' => $cash->where('default', '=', false)->sum('balance'),
             'total_due' => $total_due,
             'total_payable' => $total_payable,
             'transactions' => $transactions,

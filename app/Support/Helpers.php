@@ -3,6 +3,7 @@
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Number;
 
 if (! function_exists('logo')) {
     function logo(): string
@@ -32,5 +33,13 @@ if (!function_exists('formatDate')) {
     function formatDate($date): string
     {
         return Carbon::parse($date)->format('d M Y');
+    }
+}
+
+
+if (!function_exists('NumberFormat')) {
+    function NumberFormat($number): string
+    {
+        return Number::format($number);
     }
 }
