@@ -7,6 +7,15 @@
 
     <title>Customers Report</title>
     <style media="all">
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        main{
+            padding: 30px 20px;
+        }
         table {
             margin: 0 auto;
             width: 100%;
@@ -18,11 +27,11 @@
         }
 
         th{
-
+            padding: 4px 8px;
         }
 
         td{
-
+            padding: 4px 8px;
         }
 
     </style>
@@ -30,49 +39,44 @@
 
 <body>
 
+<main>
 
-<table style="margin-bottom: 20px; border: none;">
-    <thead style="border: none;">
-    <tr style="border: none;">
-        <th style="border: none; text-align: left;">{{$company['0']->name ?? 'N/A'}}</th>
-        <th style="border: none; text-align: right;">Report Time: {{$date}}</th>
-    </tr>
-    </thead>
-</table>
+    <div style="width: 100%; text-align: center;">
+        <h3 style="margin: 0; ">{{$company['0']->name ?? 'N/A'}}</h3>
+        <span>Phone: {{$company['0']->phone ?? 'N/A'}}</span>
+        <address>Address: {{$company['0']->address ?? 'N/A'}}</address>
+    </div>
 
-<table>
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Credit</th>
-        <th>Debit</th>
-        <th>Balance</th>
-    </tr>
-    </thead>
+    <div style="width: 100%; text-align: center; padding: 20px 0;">
+        <span style="font-weight: bold; color: #f12929; padding: 0 10px;">Total Due:{{$total_due}}</span>
+        <span style="font-weight: bold; color: #14a252; padding: 0 10px;">Total Payable: {{$total_payable}}</span>
+    </div>
 
-    <tbody>
-    @foreach($customers as $customer)
+    <table>
+        <thead>
         <tr>
-            <td>{{$customer->name}}</td>
-            <td>{{$customer->phone}}</td>
-            <td>{{$customer->payments()->where('type', '=', 'credit')->sum('amount')}}</td>
-            <td>{{$customer->payments()->where('type', '=', 'debit')->sum('amount')}}</td>
-            <td>{{$customer->balance}}</td>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Credit</th>
+            <th>Debit</th>
+            <th>Balance</th>
         </tr>
-    @endforeach
-    </tbody>
+        </thead>
 
-    <tfoot>
-    <tr>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th>Total Due:{{$total_due}}</th>
-        <th>Total Payable: {{$total_payable}}</th>
-    </tr>
-    </tfoot>
-</table>
+        <tbody>
+        @foreach($customers as $customer)
+            <tr>
+                <td>{{$customer->name}}</td>
+                <td>{{$customer->phone}}</td>
+                <td style="text-align: right;">{{$customer->payments()->where('type', '=', 'credit')->sum('amount')}}</td>
+                <td style="text-align: right;">{{$customer->payments()->where('type', '=', 'debit')->sum('amount')}}</td>
+                <td style="text-align: right;">{{$customer->balance}}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+
+</main>
 </body>
 
 </html>

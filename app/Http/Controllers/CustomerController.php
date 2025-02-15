@@ -16,7 +16,9 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::query()->get();
+        $customers = Customer::query()
+            ->orderBy('name', 'asc')
+            ->get();
         return CustomerResource::collection($customers);
     }
 
