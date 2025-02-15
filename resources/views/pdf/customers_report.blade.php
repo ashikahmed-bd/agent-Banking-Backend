@@ -14,7 +14,7 @@
         }
 
         main{
-            padding: 30px 20px;
+            padding: 30px 50px;
         }
         table {
             margin: 0 auto;

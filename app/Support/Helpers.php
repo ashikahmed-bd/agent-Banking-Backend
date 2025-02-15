@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
@@ -23,5 +24,13 @@ if (!function_exists('client_url')) {
     function client_url($value): string
     {
         return URL::format(config('app.client_url'), $value);
+    }
+}
+
+
+if (!function_exists('formatDate')) {
+    function formatDate($date): string
+    {
+        return Carbon::parse($date)->format('d M Y');
     }
 }
