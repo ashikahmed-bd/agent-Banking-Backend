@@ -4,6 +4,8 @@ namespace App\Enums;
 
 enum PaymentType: string
 {
-    case CREDIT = 'credit';
-    case DEBIT = 'debit';
+    case DEPOSIT = 'deposit';
+    case WITHDRAW = 'withdraw';
+    case TRANSFER = 'transfer';
+    case BILL = 'bill';
 }

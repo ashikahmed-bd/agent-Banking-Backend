@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,13 +16,15 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('account_id')->constrained();
-            $table->string('type')->default('');
-            $table->double('amount')->default(0);
-            $table->double('commission')->nullable()->default(0);
-            $table->double('net_amount')->nullable()->default(0);
-            $table->string('description')->nullable();
-            $table->foreignId('company_id')->constrained()->onDelete('cascade');
+            $table->foreignId('sender_id')->constrained('accounts');
+            $table->foreignId('receiver_id')->nullable()->constrained('accounts');
+            $table->string('type')->default(PaymentType::DEPOSIT);
+            $table->double('amount')->comment('Transaction amount');
+            $table->double('commission')->nullable()->comment('transaction commission');
+            $table->string('reference')->unique()->nullable(); // Unique transaction reference ID
+            $table->string('status')->default(PaymentStatus::COMPLETED);
+            $table->text('remark')->nullable();
+            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });

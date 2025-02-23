@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
 
 class PdfController extends Controller
 {
@@ -41,7 +42,11 @@ class PdfController extends Controller
             'transactions' => $transactions,
 
         ]);
-        return $pdf->download('invoice.pdf');
+
+        return Response::make($pdf->download(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="payments.pdf"',
+        ]);
     }
 
 
@@ -69,6 +74,7 @@ class PdfController extends Controller
     {
         $customers = Customer::query()
             ->with(['payments'])
+            ->orderBy('name', 'asc')
             ->get();
 
         $total_due = Customer::query()
@@ -87,6 +93,10 @@ class PdfController extends Controller
             'total_due' => $total_due,
             'total_payable' => $total_payable,
         ]);
-        return $pdf->download('customers-report.pdf');
+
+        return Response::make($pdf->download(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="report.pdf"',
+        ]);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -49,9 +49,9 @@ class User extends Authenticatable
         return asset('images/default.png');
     }
 
-    public function companies()
+    public function agent(): HasOne
     {
-        return $this->belongsToMany(Company::class, 'user_companies')->withTimestamps();
+        return $this->hasOne(Agent::class);
     }
 
 }

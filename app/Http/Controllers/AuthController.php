@@ -58,20 +58,11 @@ class AuthController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Retrieve the first company without triggering model events
-        $company = $user->withoutEvents(fn () => $user->companies()->first());
-
-        // Determine redirection URL
-        $redirectUrl = $company
-            ? config('app.client_url') // Redirect to dashboard if company exists
-            : config('app.client_url') . '/companies/create'; // Redirect to company creation if none
-
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'token' => $user->createToken('API Token')->plainTextToken,
+            'access_token' => $user->createToken('API Token')->plainTextToken,
             'user' => new UserResource($user),
-            'redirect_url' => $redirectUrl,
         ]);
     }
 

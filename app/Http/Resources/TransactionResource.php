@@ -16,25 +16,31 @@ class TransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'type' => $this->type,
-            'amount' => $this->amount,
-            'commission' => $this->commission,
-            $this->mergeWhen($this->whenLoaded('createdBy'), [
-                'created_by' => [
-                    'id' => $this->user->id,
-                    'name' => $this->user->name,
+            $this->mergeWhen($this->whenLoaded('sender'), [
+                'sender' => [
+                    'id' => $this->sender->id,
+                    'name' => $this->sender->name,
                 ],
             ]),
 
-            $this->mergeWhen($this->whenLoaded('account'), [
-                'account' => [
-                    'id' => $this->account->id,
-                    'name' => $this->account->name,
-                    'number' => $this->account->number,
-                    'logo_url' => $this->account->logo_url,
+            $this->mergeWhen($this->whenLoaded('receiver'), [
+                'receiver' => [
+                    'id' => optional($this->receiver)->id,
+                    'name' => optional($this->receiver)->name,
                 ],
             ]),
-            'created_by' => $this->whenLoaded('created_by'),
+            'type' => $this->type,
+            'amount' => $this->amount,
+            'commission' => $this->commission,
+            'reference' => $this->reference,
+            'status' => $this->status,
+            'remark' => $this->remark,
+            $this->mergeWhen($this->whenLoaded('creator'), [
+                'creator' => [
+                    'id' => $this->creator->id,
+                    'name' => $this->creator->name,
+                ],
+            ]),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -15,12 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('number')->nullable();
-            $table->string('logo')->default('');
-            $table->double('balance')->default(0);
+            $table->double('opening_balance')->comment('Cash at the start of the day'); //
+            $table->double('closing_balance')->nullable()->comment('Cash at the end of the day');
+            $table->double('current_balance')->default(0)->comment('Live balance');
             $table->boolean('default')->default(false);
-            $table->string('disk')->default(config('app.disk'));
-
-            $table->foreignId('company_id')->constrained()->onDelete('cascade');
+            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });

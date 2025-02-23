@@ -19,7 +19,7 @@ class PaymentResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'amount' => $this->amount,
-            'note' => $this->note,
+            'remark' => $this->remark,
             'customer' => CustomerResource::make($this->whenLoaded('customer')),
             $this->mergeWhen($this->whenLoaded('createdBy'), [
                 'created_by' => [

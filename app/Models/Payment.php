@@ -22,7 +22,7 @@ class Payment extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function user(): BelongsTo
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }

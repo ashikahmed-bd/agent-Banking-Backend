@@ -37,12 +37,12 @@ class CompanyController extends Controller
             'address' => $request->address,
         ]);
 
-        $company->accounts()->create([
+        $company->wallets()->create([
             'name' => "Cash",
-            'number' => "1",
             'logo' => "cash.svg",
-            'balance' => 0,
+            'opening_balance' => 0,
             'default' => true,
+            'date' => now(),
         ]);
 
         // Attach company to user logged in

@@ -7,31 +7,48 @@
 
     <title>Customers Report</title>
     <style media="all">
-        *{
+        *,
+        ::after,
+        ::before {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            color: #333;
+            font-family: 'bengali', sans-serif !important;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.5em;
         }
 
         main{
-            padding: 30px 50px;
+            padding: 50px 50px;
         }
+
         table {
-            margin: 0 auto;
             width: 100%;
-            text-align: left;
-        }
-        table, th, td {
-            border: 1px solid #0a082a;
             border-collapse: collapse;
         }
 
-        th{
-            padding: 4px 8px;
+        table, th, td {
+            border: 1px solid white;
+            border-collapse: collapse;
         }
 
-        td{
-            padding: 4px 8px;
+        table > th{
+            font-weight: bold;
+        }
+
+        th, td {
+            border: 1px solid #fde1e1;
+            padding: 6px 12px;
+        }
+
+        b{
+            border-bottom: 1px dashed black;
         }
 
     </style>

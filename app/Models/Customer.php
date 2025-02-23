@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +26,16 @@ class Customer extends Model
         return asset('images/default.png');
     }
 
-    public function company() {
-        return $this->belongsTo(Company::class);
+    public function agent():BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
     }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
@@ -69,24 +77,7 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('company_scope', function (Builder $builder) {
-            if (Auth::check()) {
-                $companyIds = Auth::user()->companies->pluck('id');
-
-                if ($companyIds->isEmpty()) {
-                    abort(403, trans('auth.no_company'));
-                }
-
-                $builder->whereIn('company_id', $companyIds);
-            }
-        });
-
-        static::creating(function ($model){
-            $companyId = Auth::user()->companies()->first()->id ?? null;
-            if (!$companyId) {
-                abort(403, trans('messages.no_company')); // Prevents saving without a company
-            }
-            $model->company_id = $companyId;
+        static::saving(function ($model){
             $model->created_by = Auth::id();
         });
     }

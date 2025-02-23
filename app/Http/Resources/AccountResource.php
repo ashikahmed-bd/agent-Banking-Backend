@@ -17,10 +17,13 @@ class AccountResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'number' => $this->number,
-            'logo_url' => $this->logo_url,
-            'balance' => $this->balance,
+            'number' => $this->default ? 'Default' : $this->number,
+            'opening_balance' => $this->opening_balance,
+            'closing_balance' => $this->closing_balance,
+            'current_balance' => $this->current_balance,
             'default' => (bool) $this->default,
+            'agent' => AgentResource::make($this->whenLoaded('agent')),
+            'creator' => UserResource::make($this->whenLoaded('creator')),
         ];
     }
 }

@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Agent;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -18,18 +20,21 @@ class AccountSeeder extends Seeder
             [
                 'name' => 'Cash',
                 'number' => '',
-                'logo' => 'cash.png',
                 'opening_balance' => '5000',
+                'current_balance' => '5000',
                 'default' => true,
-                'company_id' => Company::query()->firstOrFail()->id,
+                'agent_id' => Agent::query()->firstOrFail()->id,
+                'created_by' => User::query()->firstOrFail()->id,
             ],
+
             [
                 'name' => 'Bkash',
                 'number' => '01911742233',
-                'logo' => 'bkash.svg',
                 'opening_balance' => '5000',
+                'current_balance' => '5000',
                 'default' => false,
-                'company_id' => Company::query()->firstOrFail()->id,
+                'agent_id' => Agent::query()->firstOrFail()->id,
+                'created_by' => User::query()->firstOrFail()->id,
             ],
         ]);
     }
