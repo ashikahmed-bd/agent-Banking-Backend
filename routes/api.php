@@ -14,8 +14,6 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function (){
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-
-
 });
 
 // Route group for authentication user only
@@ -46,16 +44,12 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::put('{user}/update', [UserController::class, 'update']);
     Route::delete('{user}/delete', [UserController::class, 'destroy']);
 
-    Route::prefix('pdf')->group(function (){
-        Route::get('transactions', [PdfController::class, 'getTransactionsPrint']);
-        Route::get('account/{account}/history', [PdfController::class, 'getHistory']);
-        Route::get('customers', [PdfController::class, 'getCustomers']);
-    });
-
-    Route::get('reboot', [SettingsController::class, 'reboot']);
-    Route::get('seed', [SettingsController::class, 'seed']);
+    Route::get('pdf/transactions', [PdfController::class, 'getTransactionsPrint']);
+    Route::get('pdf/account/{account}/history', [PdfController::class, 'getHistory']);
+    Route::get('pdf/customers', [PdfController::class, 'getCustomers']);
 });
 
-
+Route::get('reboot', [SettingsController::class, 'reboot']);
+Route::get('seed', [SettingsController::class, 'seed']);
 
 
