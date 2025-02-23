@@ -7,9 +7,11 @@ use App\Enums\PaymentType;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Account;
+use App\Models\Agent;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AccountController extends Controller
@@ -28,12 +30,33 @@ class AccountController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string',
+            'number' => 'required|unique:accounts,number',
+            'opening_balance' => 'required|numeric|min:0',
+        ]);
+
+        $agent = Agent::query()->where('created_by', auth()->id())->first();
+
+        if (!$agent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User is not assigned to an agent',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         Account::query()->create([
             'name' => $request->name,
             'number' => $request->number,
             'opening_balance' => $request->opening_balance,
-            'agent_id' => $request->opening_balance,
+            'agent_id' => $agent->id,
         ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account Created Successful.',
+        ], Response::HTTP_CREATED);
+
     }
 
     /**
@@ -151,6 +174,8 @@ class AccountController extends Controller
             'type' => PaymentType::TRANSFER,
             'amount' => $request->amount,
             'commission' => $request->commission,
+            'reference' => $request->reference,
+            'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
         ]);
 
@@ -164,7 +189,7 @@ class AccountController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Balance Transfer Successful!'
-        ], Response::HTTP_OK);
+        ], Response::HTTP_CREATED);
     }
 
 
