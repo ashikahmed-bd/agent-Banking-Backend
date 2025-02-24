@@ -8,4 +8,5 @@ enum PaymentType: string
     case WITHDRAW = 'withdraw';
     case TRANSFER = 'transfer';
     case BILL = 'bill';
+    case EXPENSE = 'expense';
 }

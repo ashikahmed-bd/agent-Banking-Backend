@@ -99,6 +99,8 @@ class AccountController extends Controller
             'type' => PaymentType::DEPOSIT,
             'amount' => $request->amount,
             'commission' => $request->commission,
+            'reference' => $request->reference,
+            'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
         ]);
 
@@ -133,9 +135,10 @@ class AccountController extends Controller
         Transaction::query()->create([
             'sender_id' => $account->id,
             'receiver_id' => null,
-            'type' => PaymentType::WITHDRAW,
+            'type' => $request->type,
             'amount' => $request->amount,
             'commission' => $request->commission,
+            'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
         ]);
 
