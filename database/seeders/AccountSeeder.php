@@ -20,8 +20,8 @@ class AccountSeeder extends Seeder
             [
                 'name' => 'Cash',
                 'number' => '',
-                'opening_balance' => '5000',
-                'current_balance' => '5000',
+                'opening_balance' => '50000',
+                'current_balance' => '50000',
                 'default' => true,
                 'agent_id' => Agent::query()->firstOrFail()->id,
                 'created_by' => User::query()->firstOrFail()->id,
@@ -30,8 +30,8 @@ class AccountSeeder extends Seeder
             [
                 'name' => 'Bkash',
                 'number' => '01911742233',
-                'opening_balance' => '5000',
-                'current_balance' => '5000',
+                'opening_balance' => '50000',
+                'current_balance' => '50000',
                 'default' => false,
                 'agent_id' => Agent::query()->firstOrFail()->id,
                 'created_by' => User::query()->firstOrFail()->id,

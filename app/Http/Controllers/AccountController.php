@@ -49,6 +49,7 @@ class AccountController extends Controller
             'name' => $request->name,
             'number' => $request->number,
             'opening_balance' => $request->opening_balance,
+            'current_balance' => $request->opening_balance,
             'agent_id' => $agent->id,
         ]);
 
