@@ -99,4 +99,28 @@ class PdfController extends Controller
             'Content-Disposition' => 'attachment; filename="report.pdf"',
         ]);
     }
+
+
+    public function getStatement(Request $request, string $id)
+    {
+        $account = Account::query()
+            ->with(['transactions'])
+            ->findOrFail($id);
+
+        $transactions = $account->transactions()
+            ->whereDate('created_at', '=', Carbon::parse($request->date)->toDateString())
+            ->get();
+
+        $pdf = Pdf::loadView('pdf.account_statement', [
+        'title' => 'Account Statement',
+        'date' => Carbon::parse(now())->toDateString(),
+        'account' => $account,
+        'transactions' => $transactions,
+    ]);
+        return Response::make($pdf->download(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="report.pdf"',
+        ]);
+    }
+
 }

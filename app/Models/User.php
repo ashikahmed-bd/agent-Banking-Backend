@@ -49,9 +49,8 @@ class User extends Authenticatable
         return asset('images/default.png');
     }
 
-    public function agent(): HasOne
-    {
-        return $this->hasOne(Agent::class);
+    public function agents() {
+        return $this->belongsToMany(Agent::class, 'agent_users');
     }
 
 }

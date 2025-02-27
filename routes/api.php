@@ -47,6 +47,15 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('pdf/transactions', [PdfController::class, 'getTransactionsPrint']);
     Route::get('pdf/account/{account}/history', [PdfController::class, 'getHistory']);
     Route::get('pdf/customers', [PdfController::class, 'getCustomers']);
+
+
+    Route::prefix('pdf')->group(function (){
+        Route::get('account/{account}/statement', [PdfController::class, 'getStatement']);
+    });
+
+    Route::post('day-close', [SettingsController::class, 'closeDay']);
+    Route::post('day-open', [SettingsController::class, 'openDay']);
+
 });
 
 Route::get('reboot', [SettingsController::class, 'reboot']);

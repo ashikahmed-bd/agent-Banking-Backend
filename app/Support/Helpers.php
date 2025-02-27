@@ -13,14 +13,6 @@ if (! function_exists('logo')) {
 }
 
 
-if (! function_exists('getBusinessId')) {
-    function getBusinessId()
-    {
-        return auth()->check() ?? auth()->user()->business->id;
-    }
-}
-
-
 if (!function_exists('client_url')) {
     function client_url($value): string
     {
