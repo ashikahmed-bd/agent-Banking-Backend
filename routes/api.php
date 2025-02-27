@@ -24,11 +24,11 @@ Route::middleware('auth:sanctum')->group(function (){
 
     Route::get('accounts', [AccountController::class, 'index']);
     Route::post('account/store', [AccountController::class, 'store']);
-    Route::post('account/transfer', [AccountController::class, 'transfer']);
-    Route::post('account/deposit', [AccountController::class, 'deposit']);
-    Route::post('account/withdraw', [AccountController::class, 'withdraw']);
+    Route::post('account/exchange', [AccountController::class, 'exchange']);
+    Route::post('account/{account}/deposit', [AccountController::class, 'deposit']);
+    Route::post('account/{account}/withdraw', [AccountController::class, 'withdraw']);
     Route::get('transactions', [AccountController::class, 'transactions']);
-
+    Route::get('account/{account}/statement', [AccountController::class, 'statement']);
 
     Route::get('customers', [CustomerController::class, 'index']);
     Route::post('customer/store', [CustomerController::class, 'store']);

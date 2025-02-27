@@ -11,7 +11,6 @@ use App\Models\Agent;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AccountController extends Controller
@@ -84,14 +83,14 @@ class AccountController extends Controller
         //
     }
 
-    public function deposit(Request $request)
+    public function deposit(Request $request, string $id)
     {
         $request->validate([
             'account_id' => 'required|exists:accounts,id',
             'amount' => 'required|numeric|min:10'
         ]);
 
-        $account = Account::query()->find($request->account_id);
+        $account = Account::query()->findOrFail($id);
 
         // Log Transaction
         Transaction::query()->create([
@@ -116,14 +115,14 @@ class AccountController extends Controller
     }
 
 
-    public function withdraw(Request $request)
+    public function withdraw(Request $request, string $id)
     {
         $request->validate([
             'account_id' => 'required|exists:accounts,id',
             'amount' => 'required|numeric|min:10'
         ]);
 
-        $account = Account::query()->find($request->account_id);
+        $account = Account::query()->findOrFail($id);
 
         if ($account->current_balance < $request->amount) {
             return response()->json([
@@ -153,7 +152,7 @@ class AccountController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function transfer(Request $request)
+    public function exchange(Request $request)
     {
         $request->validate([
             'sender_id' => 'required|exists:accounts,id',
@@ -161,8 +160,8 @@ class AccountController extends Controller
             'amount' => 'required|numeric|min:10'
         ]);
 
-        $sender = Account::query()->find($request->sender_id);
-        $receiver = Account::query()->find($request->receiver_id);
+        $sender = Account::query()->findOrFail($request->sender_id);
+        $receiver = Account::query()->findOrFail($request->receiver_id);
 
         if ($sender->current_balance < $request->amount) {
             return response()->json([
@@ -175,9 +174,9 @@ class AccountController extends Controller
         Transaction::query()->create([
             'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
-            'type' => PaymentType::TRANSFER,
+            'type' => PaymentType::EXCHANGE,
             'amount' => $request->amount,
-            'commission' => $request->commission,
+            'fee' => $request->fee,
             'reference' => $request->reference,
             'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
@@ -192,7 +191,7 @@ class AccountController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Balance Transfer Successful!'
+            'message' => 'Balance Exchange Successful!'
         ], Response::HTTP_CREATED);
     }
 
@@ -205,5 +204,21 @@ class AccountController extends Controller
             ->whereDate('created_at', '=', Carbon::parse($request->date)->toDateString())
             ->get();
         return TransactionResource::collection($transactions);
+    }
+
+    public function statement(Request $request, string $id)
+    {
+
+        $account = Account::query()
+            ->with(['transactions'])
+            ->findOrFail($id);
+
+        $transactions = $account->transactions()
+            ->whereDate('created_at', '=', Carbon::parse($request->date)->toDateString())
+            ->get();
+
+        return TransactionResource::collection($transactions)->additional([
+            'account' => AccountResource::make($account),
+        ]);
     }
 }

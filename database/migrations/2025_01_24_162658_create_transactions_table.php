@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('receiver_id')->nullable()->constrained('accounts');
             $table->string('type')->default(PaymentType::DEPOSIT);
             $table->double('amount')->comment('Transaction amount');
-            $table->double('commission')->nullable()->comment('transaction commission');
+            $table->double('fee')->nullable()->comment('Exchange fee');
             $table->string('reference')->unique()->nullable(); // Unique transaction reference ID
             $table->string('status')->default(PaymentStatus::COMPLETED);
             $table->text('remark')->nullable();
