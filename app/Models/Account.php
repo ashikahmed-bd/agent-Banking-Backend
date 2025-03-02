@@ -2,23 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Account extends Model
 {
     protected $guarded = [];
 
     protected $hidden = [
-        'disk',
-        'agent_id',
+        'disk'
     ];
 
 
-    public function agent(): BelongsTo
+    public function company()
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(Company::class);
     }
 
 
@@ -33,8 +34,13 @@ class Account extends Model
         return $this->hasMany(Transaction::class, 'sender_id');
     }
 
-    public function exchange($account, $amount)
-    {
 
+    protected static function booted(): void
+    {
+        static::saving(function ($model) {
+            $model->created_by = Auth::id();
+        });
     }
+
+
 }

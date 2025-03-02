@@ -14,10 +14,6 @@ class Transaction extends Model
 
     protected $guarded = [];
 
-    protected $hidden = [
-        'agent_id',
-    ];
-
     /**
      * Get the attributes that should be cast.
      *
@@ -30,9 +26,9 @@ class Transaction extends Model
         ];
     }
 
-    public function agent(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function sender(): BelongsTo
@@ -53,7 +49,6 @@ class Transaction extends Model
     protected static function booted(): void
     {
         static::saving(function ($model){
-            $model->agent_id = 1;
             $model->created_by = Auth::id();
         });
     }

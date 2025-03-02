@@ -23,8 +23,9 @@ return new class extends Migration
             $table->double('fee')->nullable()->comment('Exchange fee');
             $table->string('reference')->unique()->nullable(); // Unique transaction reference ID
             $table->string('status')->default(PaymentStatus::COMPLETED);
+            $table->boolean('credit')->default(true);
             $table->text('remark')->nullable();
-            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
+            $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });

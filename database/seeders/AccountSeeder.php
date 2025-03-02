@@ -23,7 +23,7 @@ class AccountSeeder extends Seeder
                 'opening_balance' => '50000',
                 'current_balance' => '50000',
                 'default' => true,
-                'agent_id' => Agent::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
                 'created_by' => User::query()->firstOrFail()->id,
             ],
 
@@ -33,7 +33,7 @@ class AccountSeeder extends Seeder
                 'opening_balance' => '50000',
                 'current_balance' => '50000',
                 'default' => false,
-                'agent_id' => Agent::query()->firstOrFail()->id,
+                'company_id' => Company::query()->firstOrFail()->id,
                 'created_by' => User::query()->firstOrFail()->id,
             ],
         ]);

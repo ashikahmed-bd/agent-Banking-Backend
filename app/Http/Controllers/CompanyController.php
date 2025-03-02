@@ -6,7 +6,6 @@ use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class CompanyController extends Controller
@@ -16,8 +15,21 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        $companies = Auth::user()->companies()->get();
-        return response()->json($companies);
+        $user = Auth::user();
+
+        // Check if user is linked to the selected company
+        if (!$user->companies()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => trans('messages.no_company')
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $companies = $user->companies()
+            ->orderBy('default', 'desc')
+            ->get();
+
+        return CompanyResource::collection($companies);
     }
 
     /**
@@ -25,33 +37,7 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => ['required', 'string'],
-            'phone' => ['required', 'string', Rule::unique('companies', 'phone')],
-        ]);
-
-
-        $company = Company::query()->create([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'address' => $request->address,
-        ]);
-
-        $company->wallets()->create([
-            'name' => "Cash",
-            'logo' => "cash.svg",
-            'opening_balance' => 0,
-            'default' => true,
-            'date' => now(),
-        ]);
-
-        // Attach company to user logged in
-        $request->user()->companies()->attach($company);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Company Created Successful.',
-        ], Response::HTTP_CREATED);
+        //
     }
 
     /**
@@ -76,5 +62,17 @@ class CompanyController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+
+    public function default()
+    {
+        $user = Auth::user();
+
+        $company = $user->companies()
+            ->where('default', '=', true)
+            ->firstOrFail();
+
+        return CompanyResource::make($company);
     }
 }

@@ -61,15 +61,21 @@
         <thead>
         <tr>
             <th style="text-align: left; border: none;">
-                <p>Bkash</p>
+                <h3>Company: {{$company->name}}</h3>
+                <span>Phone: {{$company->phone}}</span>
+                <address>Address: {{$company->address}}</address>
             </th>
             <th style="text-align: right; border: none;">
-                <p>Period From: 12 Jun 2025</p>
-                <p>Account No: 2512521</p>
+                <span>Period From: {{$date}}</span>
+                <h3>Account Name: {{$account->name}}</h3>
+                @if($account->number == null)
+                    <address>Account No: Default</address>
+                @else
+                    <address>Account No: {{$account->number}}</address>
+                @endif
             </th>
         </tr>
         </thead>
-
     </table>
 
 
@@ -90,7 +96,7 @@
         @foreach($transactions as $transaction)
             <tr>
                 <td>{{formatDate($transaction->created_at)}}</td>
-                <td>{{$transaction->sender->name. ' > ' .$transaction->receiver->name}}</td>
+                <td>{{$transaction->sender->name}}</td>
                 <td>{{$transaction->type}}</td>
                 <td>{{$transaction->amount}}</td>
                 <td>{{$transaction->fee}}</td>
@@ -105,12 +111,13 @@
         <thead>
         <tr>
             <th style="text-align: left; border: none;">
-                <p>Total Deposit: 25000</p>
-                <p>Total Withdrawal: 25000</p>
+                <p>Total Deposit: {{number_format($deposit)}}</p>
+                <p>Total Withdrawal: {{number_format($withdraw)}}</p>
             </th>
+
             <th style="text-align: right; border: none;">
-                <p>Opening Balance: 2500</p>
-                <p>Current Balance: 2500</p>
+                <p>Opening Balance: {{number_format($account->opening_balance)}}</p>
+                <p>Current Balance: {{number_format($account->current_balance)}}</p>
             </th>
         </tr>
         </thead>

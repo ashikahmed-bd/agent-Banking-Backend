@@ -33,7 +33,10 @@ class SettingsController extends Controller
                 $account->save();
             }
 
-            return ['success' => true, 'message' => "Day closed successfully!"];
+            return response()->json([
+                'success' => true,
+                'message' => "Day closed successfully!"
+                ], Response::OK);
         });
     }
 

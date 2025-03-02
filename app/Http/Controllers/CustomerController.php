@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\CustomerResource;
-use App\Http\Resources\PaymentResource;
-use App\Models\Customer;
 use Exception;
+use App\Models\Company;
+use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Http\Resources\PaymentResource;
+use App\Http\Resources\CustomerResource;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomerController extends Controller
@@ -26,11 +27,13 @@ class CustomerController extends Controller
      * Store a newly created resource in storage.
      * @throws Exception
      */
-    public function store(Request $request)
+    public function store(Request $request, Company $company)
     {
         $customer = new Customer();
         $customer->name = $request->name;
         $customer->phone = $request->phone;
+        $customer->address = $request->address;
+        $customer->company_id = $company->id;
         $customer->save();
 
         if ($request->due > 0){

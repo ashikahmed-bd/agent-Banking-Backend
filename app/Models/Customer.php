@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 class Customer extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
 
     protected $hidden = [
@@ -26,9 +27,9 @@ class Customer extends Model
         return asset('images/default.png');
     }
 
-    public function agent():BelongsTo
+    public function company():BelongsTo
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function creator(): BelongsTo

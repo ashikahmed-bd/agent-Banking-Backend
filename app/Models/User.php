@@ -49,8 +49,9 @@ class User extends Authenticatable
         return asset('images/default.png');
     }
 
-    public function agents() {
-        return $this->belongsToMany(Agent::class, 'agent_users');
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class);
     }
 
 }

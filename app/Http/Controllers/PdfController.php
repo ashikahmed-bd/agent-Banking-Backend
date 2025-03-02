@@ -8,7 +8,6 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 
 class PdfController extends Controller
@@ -34,7 +33,6 @@ class PdfController extends Controller
 
         $pdf = Pdf::loadView('pdf.transactions', [
             'title' => 'Daily Report',
-            'company' => Auth::user()->companies()->get(),
             'cash' => $cash->where('default', '=', true)->sum('balance'),
             'accounts' => $cash->where('default', '=', false)->sum('balance'),
             'total_due' => $total_due,
@@ -88,7 +86,6 @@ class PdfController extends Controller
         $pdf = Pdf::loadView('pdf.customers_report', [
             'title' => 'Customers Report',
             'date' => Carbon::parse(now())->toDateString(),
-            'company' => Auth::user()->companies()->get(),
             'customers' => $customers,
             'total_due' => $total_due,
             'total_payable' => $total_payable,

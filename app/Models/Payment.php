@@ -31,11 +31,6 @@ class Payment extends Model
     protected static function booted(): void
     {
         static::saving(function ($model){
-            $companyId = Auth::user()->companies()->first()->id ?? null;
-            if (!$companyId) {
-                abort(403, trans('messages.no_company')); // Prevents saving without a company
-            }
-            $model->company_id = $companyId;
             $model->created_by = Auth::id();
         });
     }

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->double('closing_balance')->nullable()->comment('Cash at the end of the day');
             $table->double('current_balance')->default(0)->comment('Live balance');
             $table->boolean('default')->default(false);
-            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
+            $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->timestamps();
         });

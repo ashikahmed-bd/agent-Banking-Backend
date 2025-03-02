@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PaymentStatus;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use App\Models\Company;
 use App\Enums\PaymentType;
+use App\Models\Transaction;
+use App\Enums\PaymentStatus;
+use Illuminate\Http\Request;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\TransactionResource;
-use App\Models\Account;
-use App\Models\Agent;
-use App\Models\Transaction;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AccountController extends Controller
@@ -18,95 +18,75 @@ class AccountController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Company $company)
     {
-        $accounts = Account::query()->get();
+        $accounts = $company->accounts()->get();
         return AccountResource::collection($accounts);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, Company $company)
     {
         $request->validate([
-            'name' => 'required|string',
-            'number' => 'required|unique:accounts,number',
-            'opening_balance' => 'required|numeric|min:0',
+            'name' => ['required', 'string'],
+            'number' => ['required', 'string'],
+            'opening_balance' => ['required', 'numeric', 'min:1'],
         ]);
 
-        $agent = Agent::query()->where('created_by', auth()->id())->first();
-
-        if (!$agent) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User is not assigned to an agent',
-            ], Response::HTTP_FORBIDDEN);
-        }
-
-        Account::query()->create([
+        $company->accounts()->create([
             'name' => $request->name,
             'number' => $request->number,
             'opening_balance' => $request->opening_balance,
             'current_balance' => $request->opening_balance,
-            'agent_id' => $agent->id,
+            'company_id' => $company->id,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Account Created Successful.',
         ], Response::HTTP_CREATED);
-
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
-    public function deposit(Request $request, string $id)
+    public function deposit(Request $request, Company $company, string $id)
     {
         $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'amount' => 'required|numeric|min:10'
+            'amount' => ['required', 'numeric', 'min:10'],
         ]);
 
-        $account = Account::query()->findOrFail($id);
+        // Ensure the account belongs to the specified company
+        $account = $company->accounts()->where('id', $id)->first();
+
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account not found in this company!'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Ensure fee is not greater than the deposit amount
+        if ($request->fee >= $request->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fee cannot be greater than or equal to the deposit amount.'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         // Log Transaction
         Transaction::query()->create([
             'sender_id' => $account->id,
             'receiver_id' => null,
+            'company_id' => $company->id,
             'type' => PaymentType::DEPOSIT,
             'amount' => $request->amount,
-            'commission' => $request->commission,
-            'reference' => $request->reference,
+            'fee' => $request->fee ?? 0,
             'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
         ]);
 
-        // Balance Update
-        $account->current_balance += $request->amount;
-        $account->save();
+        // Update account balance
+        $account->increment('current_balance', $request->amount);
 
         return response()->json([
             'success' => true,
@@ -115,15 +95,31 @@ class AccountController extends Controller
     }
 
 
-    public function withdraw(Request $request, string $id)
+    public function withdraw(Request $request, Company $company, string $id)
     {
         $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'amount' => 'required|numeric|min:10'
+            'amount' => ['required', 'numeric', 'min:10'],
         ]);
 
-        $account = Account::query()->findOrFail($id);
+        // Ensure the account belongs to the specified company
+        $account = $company->accounts()->where('id', $id)->first();
 
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account not found in this company!'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Ensure fee is not greater than the deposit amount
+        if ($request->fee >= $request->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fee cannot be greater than or equal to the deposit amount.'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // Check balance
         if ($account->current_balance < $request->amount) {
             return response()->json([
                 'success' => false,
@@ -135,16 +131,16 @@ class AccountController extends Controller
         Transaction::query()->create([
             'sender_id' => $account->id,
             'receiver_id' => null,
-            'type' => $request->type,
+            'company_id' => $company->id,
+            'type' => PaymentType::WITHDRAW, // Default to withdrawal type
             'amount' => $request->amount,
-            'commission' => $request->commission,
+            'fee' => $request->fee ?? 0, // Ensure default value for fee
             'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
         ]);
 
         // Balance Update
-        $account->current_balance -= $request->amount;
-        $account->save();
+        $account->decrement('current_balance', $request->amount);
 
         return response()->json([
             'success' => true,
@@ -152,17 +148,34 @@ class AccountController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function exchange(Request $request)
+    public function exchange(Request $request, Company $company)
     {
         $request->validate([
-            'sender_id' => 'required|exists:accounts,id',
-            'receiver_id' => 'required|exists:accounts,id|different:sender_id',
-            'amount' => 'required|numeric|min:10'
+            'sender_id' => ['required', 'exists:accounts,id'],
+            'receiver_id' => ['required', 'exists:accounts,id', 'different:sender_id'],
+            'amount' => ['required', 'numeric', 'min:10'],
         ]);
 
-        $sender = Account::query()->findOrFail($request->sender_id);
-        $receiver = Account::query()->findOrFail($request->receiver_id);
+        // Ensure both accounts belong to the given company
+        $sender = $company->accounts()->where('id', $request->sender_id)->first();
+        $receiver = $company->accounts()->where('id', $request->receiver_id)->first();
 
+        if (!$sender || !$receiver) {
+            return response()->json([
+                'success' => false,
+                'message' => 'One or both accounts do not belong to this company!'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Ensure fee is not greater than the deposit amount
+        if ($request->fee >= $request->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fee cannot be greater than or equal to the deposit amount.'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // Check sender's balance
         if ($sender->current_balance < $request->amount) {
             return response()->json([
                 'success' => false,
@@ -174,20 +187,19 @@ class AccountController extends Controller
         Transaction::query()->create([
             'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
+            'company_id' => $company->id,
             'type' => PaymentType::EXCHANGE,
             'amount' => $request->amount,
-            'fee' => $request->fee,
+            'fee' => $request->fee ?? 0,
             'reference' => $request->reference,
             'remark' => $request->remark,
             'status' => PaymentStatus::COMPLETED
         ]);
 
-        // Balance Update
-        $sender->current_balance -= $request->amount;
-        $receiver->current_balance += $request->amount;
 
-        $sender->save();
-        $receiver->save();
+        // Update Balances
+        $sender->decrement('current_balance', $request->amount);
+        $receiver->increment('current_balance', $request->amount);
 
         return response()->json([
             'success' => true,
@@ -195,30 +207,112 @@ class AccountController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-
-    public function transactions(Request $request)
+    public function getBalance(Company $company)
     {
-        $transactions = Transaction::query()
+        $balance = $company->accounts()
+            ->sum('current_balance');
+
+        return response()->json([
+            'data' => $balance,
+        ], Response::HTTP_OK);
+    }
+
+
+    public function transactions(Request $request, Company $company)
+    {
+        $request->validate([
+            'date' => ['nullable','date'],
+        ]);
+
+        // Set the date to today's date if not provided
+        $date = $request->date ? Carbon::parse($request->date)->toDateString() : Carbon::today()->toDateString();
+
+        // Build the query
+        $transactions = $company->transactions()
             ->with(['sender', 'receiver', 'creator'])
-            ->latest()
-            ->whereDate('created_at', '=', Carbon::parse($request->date)->toDateString())
-            ->get();
+            ->whereDate('created_at', '=', $date)
+            ->paginate($request->limit);
+
         return TransactionResource::collection($transactions);
     }
 
-    public function statement(Request $request, string $id)
+    public function statement(Request $request, Company $company, string $id)
     {
+        // Validate the date input to ensure it is a valid date
+        $request->validate([
+            'date' => ['nullable', 'date'],
+        ]);
 
-        $account = Account::query()
-            ->with(['transactions'])
-            ->findOrFail($id);
+        // Fetch the account and ensure it belongs to the company
+        $account = $company->accounts()->find($id);
 
+        if (!$account) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account not found in this company!',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Default date to today if not provided
+        $date = $request->date ? Carbon::parse($request->date)->toDateString() : Carbon::today()->toDateString();
+
+        // Get transactions for the given account and date
         $transactions = $account->transactions()
-            ->whereDate('created_at', '=', Carbon::parse($request->date)->toDateString())
+            ->whereDate('created_at', '=', $date)  // Filter by the specified date
             ->get();
 
-        return TransactionResource::collection($transactions)->additional([
-            'account' => AccountResource::make($account),
+
+        $pdf = Pdf::loadView('pdf.account_statement', [
+            'title' => 'Account Statement',
+            'company' => $company,
+            'date' => Carbon::parse(now())->toFormattedDayDateString(),
+            'account' => $account,
+            'deposit' => $transactions->where('credit', true)->sum('amount'),
+            'withdraw' => $transactions->where('credit', false)->sum('amount'),
+            'transactions' => $transactions,
         ]);
+
+        // Return the PDF as a download response
+        return $pdf->download('statement_' . $account->id . '_' . $date . '.pdf');
     }
+
+
+    public function income(Request $request, Company $company)
+    {
+        $request->validate([
+            'date' => ['nullable', 'date'],
+        ]);
+
+        $date = $request->date ? Carbon::parse($request->date)->toDateString() : Carbon::today()->toDateString();
+
+        $income = $company->transactions()
+            ->whereDate('created_at', '=', $date)
+            ->sum('fee');  // Calculate the sum of the 'fee' column
+
+        return response()->json([
+            'success' => true,
+            'income' => $income,
+        ], Response::HTTP_OK);
+    }
+
+
+    public function expense(Request $request, Company $company)
+    {
+        $request->validate([
+            'date' => ['nullable', 'date'],
+        ]);
+
+        $date = $request->date ? Carbon::parse($request->date)->toDateString() : Carbon::today()->toDateString();
+
+        $expense = $company->transactions()
+            ->whereDate('created_at', '=', $date)
+            ->where('type', '=', (PaymentType::EXPENSE)->value)
+            ->sum('amount');
+
+        return response()->json([
+            'success' => true,
+            'expense' => $expense,
+        ], Response::HTTP_OK);
+    }
+
 }
