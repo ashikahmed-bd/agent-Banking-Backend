@@ -55,13 +55,6 @@ Route::scopeBindings()->group(function () {
         Route::delete('companies/{company}/{user}/delete', [UserController::class, 'destroy']);
 
 
-
-
-
-        Route::prefix('pdf')->group(function (){
-            Route::get('companies/{company}/account/{account}/statement', [PdfController::class, 'getStatement']);
-        });
-
         Route::post('companies/{company}/day-close', [SettingsController::class, 'closeDay']);
         Route::post('companies/{company}/day-open', [SettingsController::class, 'openDay']);
 

@@ -24,6 +24,15 @@ class UserSeeder extends Seeder
                 'type' => UserType::ADMIN,
                 'active' => true,
             ],
+            [
+                'name' => 'Abu Toha',
+                'phone' => '01516598533',
+                'email' => 'abutoha@ashikahmed.net',
+                'email_verified_at' => now(),
+                'password' => bcrypt('password'),
+                'type' => UserType::OWNER,
+                'active' => true,
+            ],
         ]);
     }
 }

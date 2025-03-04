@@ -213,7 +213,8 @@ class AccountController extends Controller
             ->sum('current_balance');
 
         return response()->json([
-            'data' => $balance,
+            'success' => true,
+            'balance' => $balance,
         ], Response::HTTP_OK);
     }
 

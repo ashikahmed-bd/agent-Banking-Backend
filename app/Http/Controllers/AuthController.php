@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 
+use App\Http\Resources\CompanyResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,15 +62,19 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Login successful',
-            'access_token' => $user->createToken('API Token')->plainTextToken,
+            'message' => trans('auth.success'),
+            'token' => $user->createToken('API Token')->plainTextToken,
             'user' => new UserResource($user),
         ]);
     }
 
     public function user(Request $request)
     {
-        return UserResource::make($request->user());
+        $companies = $request->user()->companies()->get();
+
+        return UserResource::make($request->user())->additional([
+            'companies' => $companies,
+        ]);
     }
 
 
